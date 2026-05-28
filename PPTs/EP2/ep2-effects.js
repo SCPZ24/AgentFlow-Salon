@@ -44,13 +44,13 @@
     splashes.push({
       x,
       y,
-      r: 10 + force * 0.15,
+      r: 6 + force * 0.07,
       life: 1,
       hue,
-      vx: (Math.random() - .5) * force * .025,
-      vy: (Math.random() - .5) * force * .025
+      vx: (Math.random() - .5) * force * .01,
+      vy: (Math.random() - .5) * force * .01
     });
-    if (splashes.length > 38) splashes.splice(0, splashes.length - 38);
+    if (splashes.length > 26) splashes.splice(0, splashes.length - 26);
   }
 
   function onPointerMove(event) {
@@ -62,12 +62,12 @@
     const dx = pointer.x - pointer.px;
     const dy = pointer.y - pointer.py;
     const speed = Math.sqrt(dx * dx + dy * dy);
-    if (speed > 4) addSplash(pointer.x, pointer.y, clamp(speed, 10, 130));
+    if (speed > 7) addSplash(pointer.x, pointer.y, clamp(speed, 8, 64));
   }
 
   function onPointerDown(event) {
-    for (let i = 0; i < 7; i += 1) {
-      addSplash(event.clientX + (Math.random() - .5) * 42, event.clientY + (Math.random() - .5) * 42, 90 + Math.random() * 70);
+    for (let i = 0; i < 4; i += 1) {
+      addSplash(event.clientX + (Math.random() - .5) * 20, event.clientY + (Math.random() - .5) * 20, 42 + Math.random() * 26);
     }
   }
 
@@ -79,8 +79,8 @@
       const splash = splashes[i];
       splash.x += splash.vx;
       splash.y += splash.vy;
-      splash.r += 2.8 + (1 - splash.life) * 10;
-      splash.life *= .945;
+      splash.r += .9 + (1 - splash.life) * 3.2;
+      splash.life *= .925;
 
       const gradient = ctx.createRadialGradient(splash.x, splash.y, 0, splash.x, splash.y, splash.r);
       gradient.addColorStop(0, `hsla(${splash.hue}, 96%, 68%, ${splash.life * .42})`);

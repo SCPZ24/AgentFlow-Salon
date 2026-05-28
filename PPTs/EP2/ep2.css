@@ -8,7 +8,7 @@
 }
 
 .ep2 {
-  background: var(--bg);
+  background: #000;
 }
 
 #splash-cursor {
@@ -21,10 +21,7 @@
 }
 
 .ep-slide {
-  background:
-    radial-gradient(circle at 18% 18%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 26%),
-    radial-gradient(circle at 82% 72%, color-mix(in srgb, var(--accent-3) 18%, transparent), transparent 30%),
-    var(--bg);
+  background: #000;
   isolation: isolate;
 }
 
@@ -64,10 +61,10 @@
   display: grid;
   place-items: center;
   margin-bottom: 24px;
-  border: 1px solid var(--ep-line);
+  border: none;
   border-radius: 24px;
   background: color-mix(in srgb, var(--surface) 58%, transparent);
-  box-shadow: 0 0 44px color-mix(in srgb, var(--accent) 28%, transparent);
+  box-shadow: none;
   overflow: hidden;
 }
 
@@ -110,12 +107,12 @@
   color: transparent;
   background:
     linear-gradient(108deg,
-      color-mix(in srgb, var(--text-1) 72%, var(--accent)) 0%,
+      color-mix(in srgb, var(--text-1) 72%, #888) 0%,
       var(--text-1) 35%,
       #ffffff 49%,
-      var(--accent-3) 55%,
-      color-mix(in srgb, var(--text-1) 78%, var(--accent-2)) 68%,
-      color-mix(in srgb, var(--text-1) 72%, var(--accent)) 100%);
+      #d8d8d8 55%,
+      color-mix(in srgb, var(--text-1) 78%, #666) 68%,
+      color-mix(in srgb, var(--text-1) 72%, #888) 100%);
   background-size: 240% auto;
   -webkit-background-clip: text;
   background-clip: text;
@@ -140,8 +137,8 @@
   margin: 0 auto;
   border-radius: 8px;
   overflow: hidden;
-  border: 1px solid rgba(255,255,255,.12);
-  box-shadow: 0 42px 120px rgba(0,0,0,.8), 0 0 80px color-mix(in srgb, var(--accent) 22%, transparent);
+  border: none;
+  box-shadow: 0 42px 120px rgba(0,0,0,.8);
 }
 
 .profile-frame img {
@@ -212,7 +209,7 @@
   display: inline-flex;
   max-width: 100%;
   padding: 16px 20px;
-  border: 1px solid var(--ep-line);
+  border: none;
   border-radius: 8px;
   background: color-mix(in srgb, var(--surface) 56%, transparent);
   color: var(--text-1);
@@ -233,7 +230,7 @@
 .callout,
 .step-card,
 .news-card {
-  border: 1px solid var(--ep-line);
+  border: none;
   border-radius: 8px;
   background: var(--ep-panel);
   box-shadow: var(--shadow);
@@ -288,6 +285,7 @@
 }
 
 .pill {
+  border: none;
   border-radius: 999px;
 }
 
@@ -296,11 +294,11 @@
   z-index: 2;
   width: min(82vw, 1280px);
   margin: 0 auto;
-  border: 1px solid var(--ep-line);
+  border: none;
   border-radius: 8px;
   overflow: hidden;
   background: var(--ep-panel-strong);
-  box-shadow: 0 38px 120px rgba(0,0,0,.45), 0 0 80px color-mix(in srgb, var(--accent-2) 22%, transparent);
+  box-shadow: 0 38px 120px rgba(0,0,0,.45);
 }
 
 .media-stage img {
@@ -337,7 +335,7 @@
 .code-card {
   margin: 0;
   padding: 28px;
-  border: 1px solid color-mix(in srgb, var(--accent) 38%, transparent);
+  border: none;
   border-radius: 8px;
   background: color-mix(in srgb, var(--bg-soft) 86%, #000 20%);
   color: var(--good);
@@ -390,7 +388,7 @@
 .comparison-table {
   display: grid;
   grid-template-columns: 250px minmax(0, 1fr);
-  border: 1px solid var(--ep-line);
+  border: none;
   border-radius: 8px;
   overflow: hidden;
   background: color-mix(in srgb, var(--surface) 66%, transparent);
@@ -400,7 +398,7 @@
 
 .comparison-table > div {
   padding: 20px 22px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: none;
   font-size: clamp(17px, 1.42vw, 25px);
   line-height: 1.32;
 }
@@ -426,7 +424,7 @@
 
 .image-panel {
   overflow: hidden;
-  border: 1px solid var(--ep-line);
+  border: none;
   border-radius: 8px;
   background: var(--ep-panel-strong);
   box-shadow: var(--shadow-lg);
@@ -446,7 +444,7 @@
 
 .code-pills code {
   padding: 14px 22px;
-  border: 1px solid var(--ep-line);
+  border: none;
   border-radius: 8px;
   background: color-mix(in srgb, var(--surface) 70%, transparent);
   color: var(--good);
@@ -543,10 +541,9 @@
 
 .laser-field {
   background:
-    radial-gradient(ellipse at 50% 74%, color-mix(in srgb, var(--accent-3) 18%, transparent), transparent 34%),
-    linear-gradient(180deg, transparent 0 45%, color-mix(in srgb, var(--accent) 16%, transparent) 49%, transparent 54%),
-    repeating-linear-gradient(96deg, transparent 0 72px, color-mix(in srgb, var(--accent-3) 18%, transparent) 73px, transparent 75px);
-  filter: saturate(1.2);
+    linear-gradient(180deg, transparent 0 45%, rgba(255,255,255,.085) 49%, transparent 54%),
+    repeating-linear-gradient(96deg, transparent 0 72px, rgba(255,255,255,.12) 73px, transparent 75px);
+  filter: none;
   animation: laser-flow 8s linear infinite;
 }
 
@@ -558,8 +555,8 @@
   width: 42vw;
   height: 72vh;
   transform: translateX(-50%);
-  background: radial-gradient(ellipse, color-mix(in srgb, var(--accent-3) 30%, transparent), transparent 68%);
-  filter: blur(18px);
+  background: none;
+  filter: none;
 }
 
 @keyframes laser-flow {
@@ -568,10 +565,9 @@
 
 .twilight-lines {
   background:
-    repeating-radial-gradient(ellipse at 45% 52%, transparent 0 22px, color-mix(in srgb, var(--accent) 35%, transparent) 23px 25px, transparent 26px 48px),
-    radial-gradient(circle at 30% 40%, color-mix(in srgb, var(--accent-3) 20%, transparent), transparent 34%),
+    repeating-radial-gradient(ellipse at 45% 52%, transparent 0 22px, rgba(255,255,255,.18) 23px 25px, transparent 26px 48px),
     #000;
-  opacity: .72;
+  opacity: .58;
   transform: skewY(-5deg) scale(1.16);
   animation: twilight-drift 9s ease-in-out infinite alternate;
 }
@@ -583,49 +579,48 @@
 
 .gradient-blinds {
   background:
-    linear-gradient(100deg, color-mix(in srgb, var(--accent) 48%, transparent), transparent 42%),
+    linear-gradient(100deg, rgba(255,255,255,.16), transparent 42%),
     repeating-linear-gradient(90deg,
-      color-mix(in srgb, var(--accent-2) 34%, transparent) 0 42px,
-      color-mix(in srgb, var(--accent-3) 20%, transparent) 43px 84px,
+      rgba(255,255,255,.12) 0 42px,
+      rgba(255,255,255,.055) 43px 84px,
       rgba(0,0,0,.28) 85px 112px),
-    radial-gradient(circle at 62% 38%, rgba(255,255,255,.16), transparent 30%);
+    #000;
   mix-blend-mode: screen;
-  opacity: .66;
+  opacity: .52;
   animation: blinds-pan 7s ease-in-out infinite alternate;
 }
 
 @keyframes blinds-pan {
-  to { filter: hue-rotate(24deg); background-position: 90px 0, 160px 0, 0 0; }
+  to { background-position: 90px 0, 160px 0, 0 0; }
 }
 
 .dot-field {
   background:
-    radial-gradient(circle at var(--mx, 55%) var(--my, 45%), color-mix(in srgb, var(--accent) 22%, transparent), transparent 22%),
-    radial-gradient(circle, color-mix(in srgb, var(--accent-2) 54%, transparent) 1.4px, transparent 1.8px);
-  background-size: auto, 24px 24px;
+    radial-gradient(circle, rgba(255,255,255,.32) 1.4px, transparent 1.8px),
+    #000;
+  background-size: 24px 24px, auto;
   opacity: .84;
   animation: dot-float 8s ease-in-out infinite alternate;
 }
 
 @keyframes dot-float {
-  to { background-position: 0 0, 12px 18px; }
+  to { background-position: 12px 18px, 0 0; }
 }
 
 .chroma-blinds {
   background:
     repeating-linear-gradient(42deg,
-      color-mix(in srgb, var(--accent) 42%, transparent) 0 10px,
+      rgba(255,255,255,.13) 0 10px,
       transparent 11px 34px,
-      color-mix(in srgb, var(--accent-3) 38%, transparent) 35px 43px,
-      transparent 44px 72px),
-    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--accent-2) 22%, transparent), transparent 44%);
-  filter: saturate(1.6);
-  opacity: .62;
+      rgba(255,255,255,.075) 35px 43px,
+      transparent 44px 72px);
+  filter: none;
+  opacity: .5;
   animation: chroma-sweep 6.5s linear infinite;
 }
 
 @keyframes chroma-sweep {
-  to { background-position: 180px 120px, 0 0; filter: hue-rotate(50deg) saturate(1.65); }
+  to { background-position: 180px 120px; }
 }
 
 @media (max-width: 1100px) {
