@@ -613,17 +613,15 @@
 }
 
 .twilight-lines {
-  background:
-    repeating-radial-gradient(ellipse at 45% 52%, transparent 0 22px, rgba(255,255,255,.18) 23px 25px, transparent 26px 48px),
-    #000;
-  opacity: .58;
-  transform: skewY(-5deg) scale(1.16);
-  animation: twilight-drift 9s ease-in-out infinite alternate;
+  background: #000;
+  overflow: hidden;
 }
 
-@keyframes twilight-drift {
-  from { background-position: 0 0, 0 0, 0 0; }
-  to { background-position: 220px 80px, -80px 40px, 0 0; }
+.twilight-lines-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: auto;
 }
 
 .gradient-blinds {
