@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="tokyo-night" data-theme-base="../../assets/themes/" data-themes="tokyo-night,cyberpunk-neon,aurora,dracula,catppuccin-mocha">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AgentFlow Salon -- EP2</title>
+  <link rel="stylesheet" href="../../assets/fonts.css">
+  <link rel="stylesheet" href="../../assets/base.css">
+  <link rel="stylesheet" id="theme-link" href="../../assets/themes/tokyo-night.css">
+  <link rel="stylesheet" href="../../assets/animations/animations.css">
+  <link rel="stylesheet" href="./ep2.css">
+</head>
+<body class="ep2">
+  <canvas id="splash-cursor" aria-hidden="true"></canvas>
+
+  <main class="deck ep2-deck">
+    <section class="slide ep-slide fx-laser" data-title="AgentFlow Salon -- EP2">
+      <div class="laser-field" aria-hidden="true"></div>
+      <div class="slide-shell cover-shell">
+        <div class="cover-mark" data-anim="zoom-pop">
+          <img src="../../AgentFlowLOGO.png" alt="AgentFlow">
+        </div>
+        <p class="kicker shiny" data-anim="fade-down">AgentFlow Salon</p>
+        <h1 class="mega-title shiny" data-anim="rise-in">EP2</h1>
+        <p class="cover-subtitle" data-anim="fade-up">AgentFlow Salon --EP2</p>
+        <p class="byline" data-anim="fade-up">by ZYT</p>
+      </div>
+      <aside class="notes">
+        开场页。用一句话把大家带进状态：今天这一期会从近期 AI 新闻聊到 HTML-PPT、DeerFlow，再到 AI 前端工作流。
+      </aside>
+    </section>
+
+    <section class="slide ep-slide profile-slide black-stage" data-title="GitHub Profile">
+      <div class="profile-frame" data-anim="perspective-zoom">
+        <img src="./github-profile.png" alt="GitHub profile screenshot">
+      </div>
+      <aside class="notes">
+        这里可以简单介绍自己的 GitHub 与近期折腾方向。黑底留白，重点让截图成为唯一视觉中心。
+      </aside>
+    </section>
+
+    <section class="slide ep-slide fx-twilight section-slide" data-title="AI新闻">
+      <div class="twilight-lines" aria-hidden="true"></div>
+      <div class="slide-shell center-copy">
+        <p class="kicker shiny" data-anim="fade-down">News Radar</p>
+        <h2 class="section-title shiny" data-anim="rise-in">AI新闻</h2>
+      </div>
+      <aside class="notes">
+        转场到新闻段落。可以说：先快速过一下这两周值得注意的几件事，后面再展开到工具和工作流。
+      </aside>
+    </section>
+
+    <section class="slide ep-slide fx-twilight news-slide" data-title="AI新闻速览">
+      <div class="twilight-lines" aria-hidden="true"></div>
+      <div class="slide-shell">
+        <p class="kicker" data-anim="fade-down">AI News</p>
+        <h2 class="slide-title" data-anim="fade-up">四条值得留意的变化</h2>
+        <div class="news-grid anim-stagger-list">
+          <article class="news-card image-card">
+            <div>
+              <span class="pill">Pricing</span>
+              <h3>DeepSeek-v4-pro 永久降价</h3>
+            </div>
+            <img src="./deepseek-discount.png" alt="DeepSeek discount">
+          </article>
+          <article class="news-card image-card">
+            <div>
+              <span class="pill">Model</span>
+              <h3>Gemini 全模态新模型发布</h3>
+            </div>
+            <img src="./gemini-3-5.webp" alt="Gemini model announcement">
+          </article>
+          <article class="news-card text-card">
+            <span class="pill">Agent</span>
+            <h3>Codex / Claude 发布 Goal 模式</h3>
+          </article>
+          <article class="news-card text-card">
+            <span class="pill">Product</span>
+            <h3>豆包即将推出付费产品</h3>
+          </article>
+        </div>
+      </div>
+      <aside class="notes">
+        这页不要讲太细，按“价格、模型、Agent 工作流、国内产品商业化”四个关键词扫过即可。
+      </aside>
+    </section>
+
+    <section class="slide ep-slide fx-gradient section-slide" data-title="HTML-PPT">
+      <div class="gradient-blinds" aria-hidden="true"></div>
+      <div class="slide-shell center-copy">
+        <p class="kicker shiny" data-anim="fade-down">Build Slides Like Web Apps</p>
+        <h2 class="section-title shiny" data-anim="rise-in">HTML-PPT</h2>
+      </div>
+      <aside class="notes">
+        转到核心工具：如果 AI 做传统 PPT 经常失控，那就把 PPT 变成 AI 更擅长的 HTML。
+      </aside>
+    </section>
+
+    <section class="slide ep-slide fx-gradient statement-slide" data-title="HTML-PPT 为什么">
+      <div class="gradient-blinds" aria-hidden="true"></div>
+      <div class="slide-shell two-column">
+        <div class="statement-copy">
+          <p class="kicker" data-anim="fade-down">Repository</p>
+          <h2 class="slide-title" data-anim="fade-up">既然 AI 做不明白 PPT...</h2>
+          <p class="big-line" data-anim="fade-up">改用 <span class="shiny">HTML</span></p>
+          <a class="repo-link" href="https://github.com/lewislulu/html-ppt-skill">github.com/lewislulu/html-ppt-skill</a>
+        </div>
+        <div class="feature-stack anim-stagger-list">
+          <div class="feature-chip">AI 原生</div>
+          <div class="feature-chip">化静为动</div>
+        </div>
+      </div>
+      <aside class="notes">
+        重点解释两点：HTML 是文本结构，AI 更容易稳定生成；同时浏览器天然支持动画、交互、响应式和导出。
+      </aside>
+    </section>
+
+    <section class="slide ep-slide fx-gradient hero-gif-slide" data-title="HTML-PPT Demo">
+      <div class="gradient-blinds" aria-hidden="true"></div>
+      <div class="media-stage" data-anim="kenburns">
+        <img src="./hero.gif" alt="HTML-PPT hero animation">
+      </div>
+      <aside class="notes">
+        这里直接让动图说话。可以补一句：我们要的不是“像 PPT 的网页”，而是能演示、能交互、能导出的网页化幻灯片。
+      </aside>
+    </section>
+
+    <section class="slide ep-slide fx-gradient install-slide" data-title="SKILL安装">
+      <div class="gradient-blinds" aria-hidden="true"></div>
+      <div class="slide-shell">
+        <p class="kicker" data-anim="fade-down">Install</p>
+        <h2 class="slide-title" data-anim="fade-up">SKILL 安装</h2>
+        <div class="install-grid">
+          <div class="step-card" data-anim="fade-up">
+            <span class="step-num">01</span>
+            <h3>先得有 nodeJS 环境</h3>
+          </div>
+          <pre class="code-card" data-anim="fade-up"><code>npm install openskills</code></pre>
+          <pre class="code-card wide" data-anim="fade-up"><code>cd path/to/working/directory
+
+openskills install https://github.com/lewislulu/html-ppt-skill
+
+openskills sync</code></pre>
+        </div>
+      </div>
+      <aside class="notes">
+        按三步讲即可：Node 环境、全局 openskills、在工作目录安装并同步 skill。
+      </aside>
+    </section>
+
+    <section class="slide ep-slide fx-dot section-slide" data-title="DeerFlow">
+      <div class="dot-field" aria-hidden="true"></div>
+      <div class="slide-shell center-copy">
+        <p class="kicker shiny" data-anim="fade-down">Super Agent</p>
+        <h2 class="section-title shiny" data-anim="rise-in">DeerFlow</h2>
+        <p class="lede compact" data-anim="fade-up">更智能，更炫酷，更可控，自定义</p>
+      </div>
+      <aside class="notes">
+        这一段从 HTML-PPT 切到 Agent 框架。用“更智能、更炫酷、更可控、自定义”作为记忆点。
+      </aside>
+    </section>
+
+    <section class="slide ep-slide fx-dot compare-slide" data-title="Agent 对比">
+      <div class="dot-field" aria-hidden="true"></div>
+      <div class="slide-shell">
+        <p class="kicker" data-anim="fade-down">Comparison</p>
+        <h2 class="slide-title" data-anim="fade-up">DeerFlow 与其他 Agent</h2>
+        <div class="comparison-table" data-anim="fade-up">
+          <div class="thead">Agent名称</div>
+          <div class="thead">与 DeerFlow 的核心对比</div>
+          <div class="agent-name">DeerFlow</div>
+          <div>开源多智能体 SuperAgent 框架，面向研究 + 作品产出；代码能力稍弱</div>
+          <div class="agent-name">LobeHub</div>
+          <div>体验优先的多模型统一平台，交互极佳、部署极简单；执行能力弱，多智能体协作浅</div>
+          <div class="agent-name">Hermes Agent</div>
+          <div>极简单智能体执行引擎，无框架依赖、代码透明、部署成本极低；无并行、记忆弱、安全性差</div>
+          <div class="agent-name">Claude Code</div>
+          <div>专业编程助手，编码能力 SOTA，IDE / CLI 深度集成；仅支持 Claude 模型，研究能力几乎为零</div>
+        </div>
+      </div>
+      <aside class="notes">
+        表格页要快讲，强调 DeerFlow 的定位：更像研究和作品产出的端到端 SuperAgent，而不是单纯聊天或编码助手。
+      </aside>
+    </section>
+
+    <section class="slide ep-slide fx-dot install-slide" data-title="DeerFlow 配置">
+      <div class="dot-field" aria-hidden="true"></div>
+      <div class="slide-shell">
+        <p class="kicker" data-anim="fade-down">Setup</p>
+        <h2 class="slide-title" data-anim="fade-up">配置</h2>
+        <div class="setup-layout">
+          <pre class="code-card large" data-anim="fade-up"><code>git clone https://github.com/bytedance/deer-flow
+
+cd deer-flow
+
+cp config.example.yaml config.yaml
+cp .env.example .env</code></pre>
+          <div class="setup-notes anim-stagger-list">
+            <div class="callout">配置好模型和 API KEY。</div>
+            <div class="callout">直接用 make 来启动。</div>
+            <div class="callout warn">启动时可能会有故障，直接问 Cursor。</div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        这页可以结合实际经验讲：配置不复杂，但不同环境启动时容易碰到依赖和端口问题，直接让 Cursor 边报错边修。
+      </aside>
+    </section>
+
+    <section class="slide ep-slide fx-chroma section-slide" data-title="AI前端技巧">
+      <div class="chroma-blinds" aria-hidden="true"></div>
+      <div class="slide-shell center-copy">
+        <p class="kicker shiny" data-anim="fade-down">Frontend Workflow</p>
+        <h2 class="section-title shiny" data-anim="rise-in">AI前端技巧</h2>
+      </div>
+      <aside class="notes">
+        进入最后一段：AI 前端不是只靠模型能力，更要靠组件、动效库、开发服务器和人工微调链路。
+      </aside>
+    </section>
+
+    <section class="slide ep-slide fx-chroma statement-slide" data-title="huashu-design">
+      <div class="chroma-blinds" aria-hidden="true"></div>
+      <div class="slide-shell center-copy">
+        <p class="kicker" data-anim="fade-down">Design Skill</p>
+        <h2 class="section-title" data-anim="rise-in">huashu-design</h2>
+        <p class="lede wide" data-anim="fade-up">让 AI 的前端不像 AI 做的</p>
+      </div>
+      <aside class="notes">
+        这里突出 huashu-design 的作用：不是替 AI 写更多代码，而是给它审美约束、组件意识和更像设计师的判断。
+      </aside>
+    </section>
+
+    <section class="slide ep-slide fx-chroma gsap-slide" data-title="GSAP">
+      <div class="chroma-blinds" aria-hidden="true"></div>
+      <div class="slide-shell two-column">
+        <div class="statement-copy">
+          <p class="kicker" data-anim="fade-down">Animation</p>
+          <h2 class="slide-title shiny" data-anim="fade-up">GSAP</h2>
+          <p class="lede">一个开源的动画库，可以用简单的 API 在网页上做动画</p>
+          <div class="code-pills">
+            <code>from</code>
+            <code>to</code>
+          </div>
+          <p class="sub-note">GSAP-skills：让 AI 更精准地控制 GSAP。</p>
+        </div>
+        <div class="image-panel" data-anim="perspective-zoom">
+          <img src="./GSAP-h.png" alt="GSAP animation example">
+        </div>
+      </div>
+      <aside class="notes">
+        解释 GSAP 的好处：它把复杂动画压成 from/to/timeline 这种 API，AI 更容易稳定调用，也更方便你微调节奏。
+      </aside>
+    </section>
+
+    <section class="slide ep-slide fx-chroma stack-slide" data-title="其他前端技术栈">
+      <div class="chroma-blinds" aria-hidden="true"></div>
+      <div class="slide-shell">
+        <p class="kicker" data-anim="fade-down">Stack</p>
+        <h2 class="slide-title" data-anim="fade-up">其他前端技术栈</h2>
+        <div class="tech-stack anim-stagger-list">
+          <div class="tech-card">three.js</div>
+          <div class="tech-card">vue / react</div>
+        </div>
+      </div>
+      <aside class="notes">
+        这里可以轻轻带过：three.js 适合 3D 和沉浸式场景，Vue/React 适合工程化和组件复用。
+      </aside>
+    </section>
+
+    <section class="slide ep-slide fx-chroma install-slide" data-title="启动开发服务器">
+      <div class="chroma-blinds" aria-hidden="true"></div>
+      <div class="slide-shell">
+        <p class="kicker" data-anim="fade-down">Before Frontend Work</p>
+        <h2 class="slide-title" data-anim="fade-up">在开始做前端之前</h2>
+        <pre class="code-card terminal" data-anim="fade-up"><code>npm run dev</code></pre>
+        <p class="localhost" data-anim="fade-up">默认在 <code>localhost:5173</code></p>
+      </div>
+      <aside class="notes">
+        这里强调一点：前端工作一定要跑起来看。只看代码不看浏览器，很容易生成看似对、实际崩的界面。
+      </aside>
+    </section>
+
+    <section class="slide ep-slide fx-chroma workflow-slide" data-title="Codex + Cursor">
+      <div class="chroma-blinds" aria-hidden="true"></div>
+      <div class="slide-shell">
+        <p class="kicker" data-anim="fade-down">Workflow</p>
+        <h2 class="slide-title" data-anim="fade-up">前端协作方式</h2>
+        <div class="workflow-steps anim-stagger-list">
+          <div class="workflow-step">
+            <span>01</span>
+            <h3>用 Codex 生成第一版</h3>
+          </div>
+          <div class="workflow-arrow">→</div>
+          <div class="workflow-step">
+            <span>02</span>
+            <h3>Cursor：组件级微调</h3>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        总结这套配合：Codex 负责大结构和第一版落地，Cursor 负责贴近界面的局部打磨，效率会更高。
+      </aside>
+    </section>
+
+    <section class="slide ep-slide fx-laser thanks-slide" data-title="特别致谢">
+      <div class="laser-field" aria-hidden="true"></div>
+      <div class="slide-shell center-copy">
+        <p class="kicker shiny" data-anim="fade-down">Special Thanks</p>
+        <h2 class="thanks-title shiny" data-anim="rise-in">特别致谢：张老师</h2>
+        <p class="lede wide" data-anim="fade-up">没有张老师就没有 AgentFlow！</p>
+      </div>
+      <aside class="notes">
+        结尾页。真诚感谢张老师，然后可以邀请大家交流、提问或继续一起折腾 AgentFlow。
+      </aside>
+    </section>
+  </main>
+
+  <div class="deck-footer">
+    <span>AgentFlow Salon EP2</span>
+    <span class="slide-number"></span>
+  </div>
+
+  <script src="../../assets/runtime.js"></script>
+  <script src="./ep2-effects.js"></script>
+</body>
+</html>
