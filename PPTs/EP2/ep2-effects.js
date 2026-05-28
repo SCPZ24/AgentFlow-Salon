@@ -607,15 +607,726 @@ void main() {
 
   document.querySelectorAll('.twilight-lines').forEach(initTwilightLines);
 
-  const dots = document.querySelectorAll('.dot-field');
-  window.addEventListener('pointermove', (event) => {
-    const x = (event.clientX / window.innerWidth * 100).toFixed(2) + '%';
-    const y = (event.clientY / window.innerHeight * 100).toFixed(2) + '%';
-    dots.forEach((el) => {
-      el.style.setProperty('--mx', x);
-      el.style.setProperty('--my', y);
+  const GRADIENT_BLINDS_VERT = `
+precision highp float;
+attribute vec3 position;
+varying vec2 vUv;
+
+void main() {
+  vUv = position.xy * 0.5 + 0.5;
+  gl_Position = vec4(position.xy, 0.0, 1.0);
+}
+`;
+
+  const GRADIENT_BLINDS_FRAG = `
+#ifdef GL_ES
+precision mediump float;
+#endif
+
+uniform vec3  iResolution;
+uniform vec2  iMouse;
+uniform float iTime;
+
+uniform float uAngle;
+uniform float uNoise;
+uniform float uBlindCount;
+uniform float uSpotlightRadius;
+uniform float uSpotlightSoftness;
+uniform float uSpotlightOpacity;
+uniform float uMirror;
+uniform float uDistort;
+uniform float uShineFlip;
+uniform vec3  uColor0;
+uniform vec3  uColor1;
+uniform vec3  uColor2;
+uniform vec3  uColor3;
+uniform vec3  uColor4;
+uniform vec3  uColor5;
+uniform vec3  uColor6;
+uniform vec3  uColor7;
+uniform int   uColorCount;
+
+varying vec2 vUv;
+
+float rand(vec2 co){
+  return fract(sin(dot(co, vec2(12.9898,78.233))) * 43758.5453);
+}
+
+vec2 rotate2D(vec2 p, float a){
+  float c = cos(a);
+  float s = sin(a);
+  return mat2(c, -s, s, c) * p;
+}
+
+vec3 getGradientColor(float t){
+  float tt = clamp(t, 0.0, 1.0);
+  int count = uColorCount;
+  if (count < 2) count = 2;
+  float scaled = tt * float(count - 1);
+  float seg = floor(scaled);
+  float f = fract(scaled);
+
+  if (seg < 1.0) return mix(uColor0, uColor1, f);
+  if (seg < 2.0 && count > 2) return mix(uColor1, uColor2, f);
+  if (seg < 3.0 && count > 3) return mix(uColor2, uColor3, f);
+  if (seg < 4.0 && count > 4) return mix(uColor3, uColor4, f);
+  if (seg < 5.0 && count > 5) return mix(uColor4, uColor5, f);
+  if (seg < 6.0 && count > 6) return mix(uColor5, uColor6, f);
+  if (seg < 7.0 && count > 7) return mix(uColor6, uColor7, f);
+  if (count > 7) return uColor7;
+  if (count > 6) return uColor6;
+  if (count > 5) return uColor5;
+  if (count > 4) return uColor4;
+  if (count > 3) return uColor3;
+  if (count > 2) return uColor2;
+  return uColor1;
+}
+
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
+{
+    vec2 uv0 = fragCoord.xy / iResolution.xy;
+
+    float aspect = iResolution.x / iResolution.y;
+    vec2 p = uv0 * 2.0 - 1.0;
+    p.x *= aspect;
+    vec2 pr = rotate2D(p, uAngle);
+    pr.x /= aspect;
+    vec2 uv = pr * 0.5 + 0.5;
+
+    vec2 uvMod = uv;
+    if (uDistort > 0.0) {
+      float a = uvMod.y * 6.0;
+      float b = uvMod.x * 6.0;
+      float w = 0.01 * uDistort;
+      uvMod.x += sin(a) * w;
+      uvMod.y += cos(b) * w;
+    }
+    float t = uvMod.x;
+    if (uMirror > 0.5) {
+      t = 1.0 - abs(1.0 - 2.0 * fract(t));
+    }
+    vec3 base = getGradientColor(t);
+
+    vec2 offset = vec2(iMouse.x/iResolution.x, iMouse.y/iResolution.y);
+    float d = length(uv0 - offset);
+    float r = max(uSpotlightRadius, 1e-4);
+    float dn = d / r;
+    float spot = (1.0 - 2.0 * pow(dn, uSpotlightSoftness)) * uSpotlightOpacity;
+    vec3 cir = vec3(spot);
+    float stripe = fract(uvMod.x * max(uBlindCount, 1.0));
+    if (uShineFlip > 0.5) stripe = 1.0 - stripe;
+    vec3 ran = vec3(stripe);
+
+    vec3 col = cir + base - ran;
+    col += (rand(gl_FragCoord.xy + iTime) - 0.5) * uNoise;
+
+    fragColor = vec4(col, 1.0);
+}
+
+void main() {
+    vec4 color;
+    mainImage(color, vUv * iResolution.xy);
+    gl_FragColor = color;
+}
+`;
+
+  function prepGradientStops(stops) {
+    const base = (stops && stops.length ? stops : ['#FF9FFC', '#5227FF']).slice(0, 8);
+    if (base.length === 1) base.push(base[0]);
+    while (base.length < 8) base.push(base[base.length - 1]);
+    return {
+      colors: base.map(hexToRgb),
+      count: Math.max(2, Math.min(8, stops ? stops.length : 2))
+    };
+  }
+
+  function initGradientBlinds(container) {
+    const canvas = document.createElement('canvas');
+    canvas.className = 'gradient-blinds-canvas';
+    canvas.setAttribute('aria-hidden', 'true');
+    container.appendChild(canvas);
+
+    const gl = canvas.getContext('webgl', {
+      antialias: true,
+      alpha: true,
+      depth: false,
+      stencil: false,
+      powerPreference: 'high-performance',
+      premultipliedAlpha: false
     });
-  }, { passive: true });
+    if (!gl) return;
+
+    const vert = compileLaserShader(gl, gl.VERTEX_SHADER, GRADIENT_BLINDS_VERT);
+    const frag = compileLaserShader(gl, gl.FRAGMENT_SHADER, GRADIENT_BLINDS_FRAG);
+    if (!vert || !frag) return;
+
+    const program = gl.createProgram();
+    gl.attachShader(program, vert);
+    gl.attachShader(program, frag);
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      console.warn(gl.getProgramInfoLog(program));
+      return;
+    }
+
+    gl.useProgram(program);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+    const buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 0, 3, -1, 0, -1, 3, 0]), gl.STATIC_DRAW);
+
+    const position = gl.getAttribLocation(program, 'position');
+    gl.enableVertexAttribArray(position);
+    gl.vertexAttribPointer(position, 3, gl.FLOAT, false, 0, 0);
+
+    const uniforms = {};
+    [
+      'iResolution', 'iMouse', 'iTime', 'uAngle', 'uNoise', 'uBlindCount',
+      'uSpotlightRadius', 'uSpotlightSoftness', 'uSpotlightOpacity', 'uMirror',
+      'uDistort', 'uShineFlip', 'uColor0', 'uColor1', 'uColor2', 'uColor3',
+      'uColor4', 'uColor5', 'uColor6', 'uColor7', 'uColorCount'
+    ].forEach((name) => {
+      uniforms[name] = gl.getUniformLocation(program, name);
+    });
+
+    const blindCount = 12;
+    const blindMinWidth = 50;
+    const mouseDampening = 0.15;
+    const { colors, count } = prepGradientStops(['#FF9FFC', '#5227FF']);
+
+    gl.uniform1f(uniforms.uAngle, 0);
+    gl.uniform1f(uniforms.uNoise, 0.3);
+    gl.uniform1f(uniforms.uSpotlightRadius, 0.5);
+    gl.uniform1f(uniforms.uSpotlightSoftness, 1);
+    gl.uniform1f(uniforms.uSpotlightOpacity, 1);
+    gl.uniform1f(uniforms.uMirror, 0);
+    gl.uniform1f(uniforms.uDistort, 0);
+    gl.uniform1f(uniforms.uShineFlip, 0);
+    colors.forEach((rgb, index) => {
+      gl.uniform3f(uniforms[`uColor${index}`], rgb[0], rgb[1], rgb[2]);
+    });
+    gl.uniform1i(uniforms.uColorCount, count);
+
+    let dpr = 1;
+    let width = 0;
+    let height = 0;
+    let last = performance.now();
+    let mouse = [0, 0];
+    let mouseTarget = [0, 0];
+
+    function resizeGradientBlinds() {
+      const rect = container.getBoundingClientRect();
+      dpr = clamp(window.devicePixelRatio || 1, 1, 2);
+      width = Math.max(1, Math.floor(rect.width));
+      height = Math.max(1, Math.floor(rect.height));
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.uniform3f(uniforms.iResolution, canvas.width, canvas.height, 1);
+
+      const maxByMinWidth = Math.max(1, Math.floor(width / blindMinWidth));
+      gl.uniform1f(uniforms.uBlindCount, Math.max(1, Math.min(blindCount, maxByMinWidth)));
+
+      if (mouseTarget[0] === 0 && mouseTarget[1] === 0) {
+        mouse = [canvas.width / 2, canvas.height / 2];
+        mouseTarget = [canvas.width / 2, canvas.height / 2];
+        gl.uniform2f(uniforms.iMouse, mouse[0], mouse[1]);
+      }
+    }
+
+    function updatePointer(event) {
+      const rect = canvas.getBoundingClientRect();
+      const x = (event.clientX - rect.left) * dpr;
+      const y = (rect.height - (event.clientY - rect.top)) * dpr;
+      mouseTarget = [x, y];
+      if (mouseDampening <= 0) {
+        mouse = [x, y];
+        gl.uniform2f(uniforms.iMouse, x, y);
+      }
+    }
+
+    function render(now) {
+      const delta = Math.min(0.033, Math.max(0.001, (now - last) / 1000));
+      last = now;
+
+      const rect = container.getBoundingClientRect();
+      if (Math.floor(rect.width) !== width || Math.floor(rect.height) !== height) resizeGradientBlinds();
+      const visible = rect.bottom > 0 && rect.top < window.innerHeight;
+
+      if (mouseDampening > 0) {
+        const factor = Math.min(1, 1 - Math.exp(-delta / Math.max(1e-4, mouseDampening)));
+        mouse[0] += (mouseTarget[0] - mouse[0]) * factor;
+        mouse[1] += (mouseTarget[1] - mouse[1]) * factor;
+        gl.uniform2f(uniforms.iMouse, mouse[0], mouse[1]);
+      }
+
+      if (visible) {
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.uniform1f(uniforms.iTime, now * 0.001);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+      }
+      requestAnimationFrame(render);
+    }
+
+    resizeGradientBlinds();
+    canvas.addEventListener('pointermove', updatePointer, { passive: true });
+    requestAnimationFrame(render);
+  }
+
+  document.querySelectorAll('.gradient-blinds').forEach(initGradientBlinds);
+
+  const TWO_PI = Math.PI * 2;
+
+  function initDotField(container) {
+    const dotRadius = 3.2;
+    const dotSpacing = 16;
+    const cursorRadius = 500;
+    const cursorForce = 0.1;
+    const bulgeOnly = true;
+    const bulgeStrength = 67;
+    const glowRadius = 160;
+    const sparkle = false;
+    const waveAmplitude = 0;
+    const gradientFrom = 'rgba(82, 205, 255, 0.78)';
+    const gradientTo = 'rgba(166, 231, 255, 0.58)';
+    const glowColor = '#38BDF8';
+
+    const canvas = document.createElement('canvas');
+    canvas.className = 'dot-field-canvas';
+    canvas.setAttribute('aria-hidden', 'true');
+    container.appendChild(canvas);
+
+    const glowId = `dot-field-glow-${Math.random().toString(36).slice(2, 9)}`;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.classList.add('dot-field-glow');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.innerHTML = `
+      <defs>
+        <radialGradient id="${glowId}">
+          <stop offset="0%" stop-color="${glowColor}" />
+          <stop offset="100%" stop-color="transparent" />
+        </radialGradient>
+      </defs>
+      <circle cx="-9999" cy="-9999" r="${glowRadius}" fill="url(#${glowId})" style="opacity:0;will-change:opacity" />
+    `;
+    container.appendChild(svg);
+
+    const glowEl = svg.querySelector('circle');
+    const ctx = canvas.getContext('2d', { alpha: true });
+    if (!ctx) return;
+
+    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let resizeTimer = 0;
+    let raf = 0;
+    let frameCount = 0;
+    let glowOpacity = 0;
+    let engagement = 0;
+    let dots = [];
+    const mouse = { x: -9999, y: -9999, prevX: -9999, prevY: -9999, speed: 0 };
+    const size = { w: 0, h: 0, offsetX: 0, offsetY: 0 };
+
+    function buildDots(w, h) {
+      const step = dotRadius + dotSpacing;
+      const cols = Math.floor(w / step);
+      const rows = Math.floor(h / step);
+      const padX = (w % step) / 2;
+      const padY = (h % step) / 2;
+      dots = new Array(rows * cols);
+      let idx = 0;
+
+      for (let row = 0; row < rows; row += 1) {
+        for (let col = 0; col < cols; col += 1) {
+          const ax = padX + col * step + step / 2;
+          const ay = padY + row * step + step / 2;
+          dots[idx] = { ax, ay, sx: ax, sy: ay, vx: 0, vy: 0, x: ax, y: ay };
+          idx += 1;
+        }
+      }
+    }
+
+    function doResize() {
+      const rect = container.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      size.w = w;
+      size.h = h;
+      size.offsetX = rect.left + window.scrollX;
+      size.offsetY = rect.top + window.scrollY;
+      buildDots(w, h);
+    }
+
+    function resizeDotField() {
+      clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(doResize, 100);
+    }
+
+    function onMouseMove(event) {
+      mouse.x = event.pageX - size.offsetX;
+      mouse.y = event.pageY - size.offsetY;
+    }
+
+    function updateMouseSpeed() {
+      const dx = mouse.prevX - mouse.x;
+      const dy = mouse.prevY - mouse.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      mouse.speed += (dist - mouse.speed) * 0.5;
+      if (mouse.speed < 0.001) mouse.speed = 0;
+      mouse.prevX = mouse.x;
+      mouse.prevY = mouse.y;
+    }
+
+    const speedInterval = window.setInterval(updateMouseSpeed, 20);
+
+    function tick() {
+      frameCount += 1;
+      const { w, h } = size;
+      const len = dots.length;
+      const t = frameCount * 0.02;
+
+      const targetEngagement = Math.min(mouse.speed / 5, 1);
+      engagement += (targetEngagement - engagement) * 0.06;
+      if (engagement < 0.001) engagement = 0;
+
+      glowOpacity += (engagement - glowOpacity) * 0.08;
+      if (glowEl) {
+        glowEl.setAttribute('cx', mouse.x);
+        glowEl.setAttribute('cy', mouse.y);
+        glowEl.style.opacity = glowOpacity;
+      }
+
+      ctx.clearRect(0, 0, w, h);
+
+      const grad = ctx.createLinearGradient(0, 0, w, h);
+      grad.addColorStop(0, gradientFrom);
+      grad.addColorStop(1, gradientTo);
+      ctx.fillStyle = grad;
+
+      const crSq = cursorRadius * cursorRadius;
+      const rad = dotRadius / 2;
+
+      ctx.beginPath();
+
+      for (let i = 0; i < len; i += 1) {
+        const d = dots[i];
+        const dx = mouse.x - d.ax;
+        const dy = mouse.y - d.ay;
+        const distSq = dx * dx + dy * dy;
+
+        if (distSq < crSq && engagement > 0.01) {
+          const dist = Math.sqrt(distSq);
+          if (bulgeOnly) {
+            const nt = 1 - dist / cursorRadius;
+            const push = nt * nt * bulgeStrength * engagement;
+            const angle = Math.atan2(dy, dx);
+            d.sx += (d.ax - Math.cos(angle) * push - d.sx) * 0.15;
+            d.sy += (d.ay - Math.sin(angle) * push - d.sy) * 0.15;
+          } else {
+            const angle = Math.atan2(dy, dx);
+            const move = (500 / dist) * (mouse.speed * cursorForce);
+            d.vx += Math.cos(angle) * -move;
+            d.vy += Math.sin(angle) * -move;
+          }
+        } else if (bulgeOnly) {
+          d.sx += (d.ax - d.sx) * 0.1;
+          d.sy += (d.ay - d.sy) * 0.1;
+        }
+
+        if (!bulgeOnly) {
+          d.vx *= 0.9;
+          d.vy *= 0.9;
+          d.x = d.ax + d.vx;
+          d.y = d.ay + d.vy;
+          d.sx += (d.x - d.sx) * 0.1;
+          d.sy += (d.y - d.sy) * 0.1;
+        }
+
+        let drawX = d.sx;
+        let drawY = d.sy;
+        if (waveAmplitude > 0) {
+          drawY += Math.sin(d.ax * 0.03 + t) * waveAmplitude;
+          drawX += Math.cos(d.ay * 0.03 + t * 0.7) * waveAmplitude * 0.5;
+        }
+
+        if (sparkle) {
+          const hash = ((i * 2654435761) ^ (frameCount >> 3)) >>> 0;
+          if ((hash % 100) < 3) {
+            ctx.moveTo(drawX + rad * 1.8, drawY);
+            ctx.arc(drawX, drawY, rad * 1.8, 0, TWO_PI);
+          } else {
+            ctx.moveTo(drawX + rad, drawY);
+            ctx.arc(drawX, drawY, rad, 0, TWO_PI);
+          }
+        } else {
+          ctx.moveTo(drawX + rad, drawY);
+          ctx.arc(drawX, drawY, rad, 0, TWO_PI);
+        }
+      }
+
+      ctx.fill();
+      raf = requestAnimationFrame(tick);
+    }
+
+    doResize();
+    window.addEventListener('resize', resizeDotField);
+    window.addEventListener('mousemove', onMouseMove, { passive: true });
+    raf = requestAnimationFrame(tick);
+  }
+
+  document.querySelectorAll('.dot-field').forEach(initDotField);
+
+  const CHROMA_BLINDS_VERT = `
+precision highp float;
+attribute vec3 position;
+varying vec2 vUv;
+void main() {
+  vUv = position.xy * 0.5 + 0.5;
+  gl_Position = vec4(position.xy, 0.0, 1.0);
+}
+`;
+
+  const CHROMA_BLINDS_FRAG = `
+precision highp float;
+
+varying vec2 vUv;
+
+uniform float uTime;
+uniform vec2  uRes;
+
+uniform float uLineCount;
+uniform float uLineThickness;
+uniform float uLineSharpness;
+uniform float uAngleRad;
+uniform float uZoom;
+uniform float uRadialStrength;
+uniform float uRadialSpeed;
+uniform float uContrast;
+
+uniform vec3  uColorA;
+uniform vec3  uColorB;
+uniform vec3  uColorC;
+
+uniform vec3  uBg;
+uniform float uAlpha;
+uniform float uClickBoost;
+
+vec3 cosinePalette(in float t) {
+  vec3 a = (uColorA + uColorB + uColorC) / 3.0;
+  vec3 x = uColorA - a;
+  vec3 y = uColorB - a;
+  vec3 bSin = -(x + 2.0 * y) / 1.73205080757;
+  vec3 phase = vec3(
+    atan(bSin.x, x.x),
+    atan(bSin.y, x.y),
+    atan(bSin.z, x.z)
+  );
+  vec3 amp = sqrt(x * x + bSin * bSin);
+  return a + amp * cos(6.28318530718 * t + phase);
+}
+
+void main() {
+  vec2 uv = (vUv * 2.0 - 1.0) * vec2(uRes.x / max(uRes.y, 1.0), 1.0);
+  uv *= max(uZoom, 0.0001);
+
+  float ca = cos(uAngleRad);
+  float sa = sin(uAngleRad);
+  vec2 rotated = vec2(ca * uv.x - sa * uv.y, sa * uv.x + ca * uv.y);
+
+  float stripe = rotated.x * uLineCount * 1.41421356 + uTime * 0.8;
+  float wave = sin(stripe);
+
+  float dist = abs(wave);
+  float glow = uLineThickness / pow(max(dist, 0.0001), max(uLineSharpness, 0.05));
+
+  float radial = length(uv) * uRadialStrength + uTime * uRadialSpeed;
+  vec3 paletteCol = cosinePalette(radial);
+  vec3 col = paletteCol * glow * uClickBoost;
+
+  col = smoothstep(vec3(0.0), vec3(max(uContrast, 0.001)), col);
+
+  float bgLuma = dot(uBg, vec3(0.2126, 0.7152, 0.0722));
+  float lightMix = smoothstep(0.35, 0.75, bgLuma);
+
+  float coverage = clamp(
+    dot(col, vec3(0.2126, 0.7152, 0.0722)),
+    0.0,
+    1.0
+  );
+
+  vec3 painted = mix(uBg, paletteCol, coverage);
+  vec3 finalCol = mix(col, painted, lightMix);
+
+  gl_FragColor = vec4(finalCol, uAlpha);
+}
+`;
+
+  function initChromaBlinds(container) {
+    const canvas = document.createElement('canvas');
+    canvas.className = 'chroma-blinds-canvas';
+    canvas.setAttribute('aria-hidden', 'true');
+    container.appendChild(canvas);
+
+    const gl = canvas.getContext('webgl', {
+      antialias: false,
+      alpha: true,
+      depth: false,
+      stencil: false,
+      powerPreference: 'high-performance',
+      premultipliedAlpha: false
+    });
+    if (!gl) return;
+
+    const vert = compileLaserShader(gl, gl.VERTEX_SHADER, CHROMA_BLINDS_VERT);
+    const frag = compileLaserShader(gl, gl.FRAGMENT_SHADER, CHROMA_BLINDS_FRAG);
+    if (!vert || !frag) return;
+
+    const program = gl.createProgram();
+    gl.attachShader(program, vert);
+    gl.attachShader(program, frag);
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      console.warn(gl.getProgramInfoLog(program));
+      return;
+    }
+
+    gl.useProgram(program);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+    const buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 0, 3, -1, 0, -1, 3, 0]), gl.STATIC_DRAW);
+
+    const position = gl.getAttribLocation(program, 'position');
+    gl.enableVertexAttribArray(position);
+    gl.vertexAttribPointer(position, 3, gl.FLOAT, false, 0, 0);
+
+    const uniforms = {};
+    [
+      'uTime', 'uRes', 'uLineCount', 'uLineThickness', 'uLineSharpness',
+      'uAngleRad', 'uZoom', 'uRadialStrength', 'uRadialSpeed', 'uContrast',
+      'uColorA', 'uColorB', 'uColorC', 'uBg', 'uAlpha', 'uClickBoost'
+    ].forEach((name) => {
+      uniforms[name] = gl.getUniformLocation(program, name);
+    });
+
+    const colorA = hexToRgb('#510679');
+    const colorB = hexToRgb('#E015B4');
+    const colorC = hexToRgb('#9CA1F2');
+    const bg = hexToRgb('#000000');
+
+    gl.uniform1f(uniforms.uLineCount, 10);
+    gl.uniform1f(uniforms.uLineThickness, 0.3);
+    gl.uniform1f(uniforms.uLineSharpness, 0.5);
+    gl.uniform1f(uniforms.uZoom, 0.75);
+    gl.uniform1f(uniforms.uRadialStrength, 0.5);
+    gl.uniform1f(uniforms.uRadialSpeed, 0.2);
+    gl.uniform1f(uniforms.uContrast, 1.2);
+    gl.uniform3f(uniforms.uColorA, colorA[0], colorA[1], colorA[2]);
+    gl.uniform3f(uniforms.uColorB, colorB[0], colorB[1], colorB[2]);
+    gl.uniform3f(uniforms.uColorC, colorC[0], colorC[1], colorC[2]);
+    gl.uniform3f(uniforms.uBg, bg[0], bg[1], bg[2]);
+    gl.uniform1f(uniforms.uAlpha, 1);
+
+    let dpr = 1;
+    let width = 0;
+    let height = 0;
+    let last = performance.now();
+    let elapsed = 0;
+    const speed = 1;
+    const baseAngleRad = 45 * Math.PI / 180;
+    const cursorAngleStrength = 5 * Math.PI / 180;
+    const cursorLerp = 0.05;
+    const clickBurstStrength = 1.6;
+    const clickBurstDecay = 2.5;
+    const pointer = {
+      active: false,
+      nx: 0.5,
+      ny: 0.5,
+      smoothedAngle: baseAngleRad,
+      initialized: false,
+      click: 0
+    };
+
+    function resizeChroma() {
+      const rect = container.getBoundingClientRect();
+      dpr = clamp(window.devicePixelRatio || 1, 1, 1.5);
+      width = Math.max(1, Math.floor(rect.width));
+      height = Math.max(1, Math.floor(rect.height));
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.uniform2f(uniforms.uRes, canvas.width, canvas.height);
+    }
+
+    function updatePointer(event) {
+      const rect = canvas.getBoundingClientRect();
+      pointer.nx = (event.clientX - rect.left) / Math.max(rect.width, 1);
+      pointer.ny = (event.clientY - rect.top) / Math.max(rect.height, 1);
+      pointer.active = true;
+    }
+
+    function render(now) {
+      const delta = Math.min(0.033, Math.max(0.001, (now - last) / 1000));
+      last = now;
+      elapsed += delta * Math.max(speed, 0);
+
+      const rect = container.getBoundingClientRect();
+      if (Math.floor(rect.width) !== width || Math.floor(rect.height) !== height) resizeChroma();
+
+      let targetAngle = baseAngleRad;
+      if (pointer.active) {
+        const dx = pointer.nx - 0.5;
+        const dy = 0.5 - pointer.ny;
+        const reach = Math.min(1, Math.sqrt(dx * dx + dy * dy) * 2);
+        const perp = -Math.sin(baseAngleRad) * dx + Math.cos(baseAngleRad) * dy;
+        const sign = perp >= 0 ? 1 : -1;
+        targetAngle = baseAngleRad + sign * reach * cursorAngleStrength;
+      }
+      if (!pointer.initialized) {
+        pointer.smoothedAngle = targetAngle;
+        pointer.initialized = true;
+      } else {
+        pointer.smoothedAngle += (targetAngle - pointer.smoothedAngle) * cursorLerp;
+      }
+      pointer.click = Math.max(0, pointer.click - delta * clickBurstDecay);
+
+      const visible = rect.bottom > 0 && rect.top < window.innerHeight;
+      if (visible) {
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.uniform1f(uniforms.uTime, elapsed);
+        gl.uniform1f(uniforms.uAngleRad, pointer.smoothedAngle);
+        gl.uniform1f(uniforms.uClickBoost, 1 + pointer.click * (clickBurstStrength - 1));
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+      }
+      requestAnimationFrame(render);
+    }
+
+    resizeChroma();
+    canvas.addEventListener('pointermove', updatePointer, { passive: true });
+    canvas.addEventListener('pointerenter', updatePointer, { passive: true });
+    canvas.addEventListener('pointerleave', () => {
+      pointer.active = false;
+    }, { passive: true });
+    canvas.addEventListener('pointerdown', (event) => {
+      updatePointer(event);
+      pointer.click = 1;
+    }, { passive: true });
+    requestAnimationFrame(render);
+  }
+
+  document.querySelectorAll('.chroma-blinds').forEach(initChromaBlinds);
 
   const canvas = document.getElementById('splash-cursor');
   if (!canvas) return;

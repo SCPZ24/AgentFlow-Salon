@@ -625,49 +625,50 @@
 }
 
 .gradient-blinds {
-  background:
-    linear-gradient(100deg, rgba(255,255,255,.16), transparent 42%),
-    repeating-linear-gradient(90deg,
-      rgba(255,255,255,.12) 0 42px,
-      rgba(255,255,255,.055) 43px 84px,
-      rgba(0,0,0,.28) 85px 112px),
-    #000;
+  background: #000;
   mix-blend-mode: screen;
-  opacity: .52;
-  animation: blinds-pan 7s ease-in-out infinite alternate;
+  overflow: hidden;
 }
 
-@keyframes blinds-pan {
-  to { background-position: 90px 0, 160px 0, 0 0; }
+.gradient-blinds-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: auto;
+  mix-blend-mode: lighten;
 }
 
 .dot-field {
-  background:
-    radial-gradient(circle, rgba(255,255,255,.32) 1.4px, transparent 1.8px),
-    #000;
-  background-size: 24px 24px, auto;
-  opacity: .84;
-  animation: dot-float 8s ease-in-out infinite alternate;
+  background: #000;
+  overflow: hidden;
 }
 
-@keyframes dot-float {
-  to { background-position: 12px 18px, 0 0; }
+.dot-field-canvas,
+.dot-field-glow {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.dot-field-canvas {
+  display: block;
+}
+
+.dot-field-glow {
+  pointer-events: none;
 }
 
 .chroma-blinds {
-  background:
-    repeating-linear-gradient(42deg,
-      rgba(255,255,255,.13) 0 10px,
-      transparent 11px 34px,
-      rgba(255,255,255,.075) 35px 43px,
-      transparent 44px 72px);
-  filter: none;
-  opacity: .5;
-  animation: chroma-sweep 6.5s linear infinite;
+  background: #000;
+  overflow: hidden;
 }
 
-@keyframes chroma-sweep {
-  to { background-position: 180px 120px; }
+.chroma-blinds-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: auto;
 }
 
 @media (max-width: 1100px) {
