@@ -11,7 +11,7 @@
 
 **标题：** Python转TypeScript：迁移学习30分钟速通
 
-**副标题：** 你已经懂80%了，差的只是语法翻译
+**副标题：** 其实法非常像
 
 **Speaker tag：** AgentFlow Salon · EP2
 
@@ -22,15 +22,13 @@
 **大标题：** AI时代，为什么Python开发者必须懂TS？
 
 **三栏卡片：**
-- 🤖 **AI框架前端全是TS**
-  Cursor SDK / LangChain.js / Vercel AI SDK
+- 💻 **主流前端框架全是TS**
+  vue / react
 - ⚡ **边缘运行时只认JS/TS**
   Cloudflare Workers / Deno / Bun
-- 🔒 **类型安全 = 更少幻觉Bug**
+- 🔒 **类型安全 = 更少Bug**
   AI生成代码的最佳拍档
-
-[NOTES]
-这里点一下痛点：你用Python写Agent，前端/API层却要JavaScript。不懂TS，就只能复制粘贴AI给的代码，出了Bug还不知道为什么。
+- 🤖 **完全适配AI/Agent**
 
 ---
 
@@ -51,18 +49,14 @@
 
 **底部警示：** ⚠️ 最大坑：TS有`null`和`undefined`两个"空"
 
-[NOTES]
-重点讲这张表的最后两行。null vs undefined是新人第一个摔跤点，要预告一下。
-缩进那行可以开个玩笑：Python程序员第一次看到花括号会有点不适应。
-
 ---
 
 ## 变量声明
 
-**大标题：** 变量：从"随便写"到"声明方式有讲究"
+**大标题：** 变量：像C++一样申明类型
 
 **左列（Python）：**
-```python
+```python 
 # Python - 直接赋值，类型随时变
 name = "Alice"
 age = 30
@@ -83,9 +77,6 @@ let tag: string = "ok"
 
 **底部规则框：**
 > 规则：优先用 `const`，需要改才用 `let`，永远不要用 `var`
-
-[NOTES]
-类比：Python的变量像便利贴，想贴哪贴哪。TS的const像永久标签，let像可撕换标签，var是个历史遗留问题别管它。
 
 ---
 
@@ -120,9 +111,6 @@ function greet(name: string, greeting = "Hello"): string {
 ```
 
 **高亮提示：** Python的f-string `f"Hi {name}"` = TS的模板字符串 `` `Hi ${name}` ``
-
-[NOTES]
-箭头函数是AI生成代码最高频的写法，一定要看懂。重点提一下：返回类型写在括号后面的冒号，和Python的`->`不同。
 
 ---
 
@@ -206,10 +194,6 @@ type Point = { x: number; y: number }
 
 **底部对照：** Python `TypedDict` ≈ TS `interface` ≈ TS `type`
 
-[NOTES]
-泛型是让很多人望而却步的地方，但其实你用Python写过typing.Generic的话，概念完全一样。
-重点强调IDE自动补全这个实际收益——这是TS的杀手锏。
-
 ---
 
 ## 类与模块
@@ -255,9 +239,6 @@ import { Dog } from './animal'
 import type { Animal } from './animal'  // 仅导入类型
 ```
 
-[NOTES]
-constructor里的public是语法糖，非常方便。没有`self`，改用`this`——这是面向对象的通用概念，Python程序员应该都理解。
-
 ---
 
 ## 异步编程
@@ -297,10 +278,6 @@ try {
 - Python `asyncio.run()` ≈ TS 顶层 `await`（Node 16+ / 浏览器）
 - Python `Coroutine` = TS `Promise<T>`
 
-[NOTES]
-这是最让Python开发者感到亲切的部分。async/await是2015年JS引入的，Python 3.5才有，所以设计非常相似。
-重点提：fetch是浏览器/现代Node内置的，不需要像Python一样装requests。
-
 ---
 
 ## 最容易踩的坑
@@ -338,9 +315,6 @@ try {
 
 5. **`typeof null === "object"`**
    JS历史遗留Bug，检查null用 `=== null` 而不是typeof
-
-[NOTES]
-这一页可以讲慢一点，这是新人第一周最容易被坑的地方。特别是undefined和null的区别，建议现场演示一下。
 
 ---
 
@@ -381,10 +355,6 @@ tsc && node index.js    # 先编译再运行（生产用）
 | `black` | `prettier` |
 | `pylint` | `eslint` |
 
-[NOTES]
-ts-node对于Python开发者来说是最亲切的入口——直接跑文件，不用想编译的事。
-tsconfig.json就像Python的pyproject.toml，暂时不用深究，用默认配置就行。
-
 ---
 
 ## 速查对照表
@@ -408,9 +378,6 @@ tsconfig.json就像Python的pyproject.toml，暂时不用深究，用默认配�
 | `None` | `null` 或 `undefined` |
 | `True/False` | `true/false` |
 | `and/or/not` | `&&/\|\|/!` |
-
-[NOTES]
-这页可以截图收藏，作为过渡期的速查手册。最有意思的是列表推导式——TS没有，但map+filter更接近函数式，其实更灵活。
 
 ---
 
@@ -437,7 +404,3 @@ tsconfig.json就像Python的pyproject.toml，暂时不用深究，用默认配�
 - 🔗 **下一步**：LangChain.js / Vercel AI SDK
 
 **底部金句：** "TypeScript是Python的镜像，核心思想完全相通，你只是在学新语法，不是新思维。"
-
-[NOTES]
-结语可以说：今天讲的都是最高频的20%语法，能覆盖你90%的实际工作场景。遇到不会的直接问AI，但现在你至少能看懂AI给你的TS代码了。
-鼓励大家去TypeScript Playground动手试试今天的例子。
