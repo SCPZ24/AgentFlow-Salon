@@ -11,19 +11,14 @@
   <link rel="stylesheet" href="./ep2.css">
 </head>
 <body class="ep2">
-  <canvas id="splash-cursor" aria-hidden="true"></canvas>
 
   <main class="deck ep2-deck">
     <section class="slide ep-slide fx-laser" data-title="AgentFlow Salon -- EP2">
       <div class="laser-field" aria-hidden="true"></div>
       <div class="slide-shell cover-shell">
-        <div class="cover-mark" data-anim="zoom-pop">
-          <img src="../../AgentFlowLOGO.png" alt="AgentFlow">
-        </div>
-        <p class="kicker shiny" data-anim="fade-down">AgentFlow Salon</p>
-        <h1 class="mega-title shiny" data-anim="rise-in">EP2</h1>
-        <p class="cover-subtitle" data-anim="fade-up">AgentFlow Salon --EP2</p>
-        <p class="byline" data-anim="fade-up">by ZYT</p>
+        <h1 class="mega-title shiny" data-anim="rise-in">AgentFlow</h1>
+        <p class="cover-subtitle" data-anim="fade-up">EP2</p>
+        <p class="byline" data-anim="fade-up">by 赵宇彤</p>
       </div>
       <aside class="notes">
         开场页。用一句话把大家带进状态：今天这一期会从近期 AI 新闻聊到 HTML-PPT、DeerFlow，再到 AI 前端工作流。
@@ -42,8 +37,7 @@
     <section class="slide ep-slide fx-twilight section-slide" data-title="AI新闻">
       <div class="twilight-lines" aria-hidden="true"></div>
       <div class="slide-shell center-copy">
-        <p class="kicker shiny" data-anim="fade-down">News Radar</p>
-        <h2 class="section-title shiny" data-anim="rise-in">AI新闻</h2>
+        <h2 class="section-title shiny" data-anim="rise-in">行业新闻</h2>
       </div>
       <aside class="notes">
         转场到新闻段落。可以说：先快速过一下这两周值得注意的几件事，后面再展开到工具和工作流。
@@ -54,28 +48,24 @@
       <div class="twilight-lines" aria-hidden="true"></div>
       <div class="slide-shell">
         <p class="kicker" data-anim="fade-down">AI News</p>
-        <h2 class="slide-title" data-anim="fade-up">四条值得留意的变化</h2>
+        <h2 class="slide-title" data-anim="fade-up">AI新闻</h2>
         <div class="news-grid anim-stagger-list">
           <article class="news-card image-card">
             <div>
-              <span class="pill">Pricing</span>
               <h3>DeepSeek-v4-pro 永久降价</h3>
             </div>
             <img src="./deepseek-discount.png" alt="DeepSeek discount">
           </article>
           <article class="news-card image-card">
             <div>
-              <span class="pill">Model</span>
               <h3>Gemini 全模态新模型发布</h3>
             </div>
             <img src="./gemini-3-5.webp" alt="Gemini model announcement">
           </article>
           <article class="news-card text-card">
-            <span class="pill">Agent</span>
             <h3>Codex / Claude 发布 Goal 模式</h3>
           </article>
           <article class="news-card text-card">
-            <span class="pill">Product</span>
             <h3>豆包即将推出付费产品</h3>
           </article>
         </div>
@@ -100,7 +90,6 @@
       <div class="gradient-blinds" aria-hidden="true"></div>
       <div class="slide-shell two-column">
         <div class="statement-copy">
-          <p class="kicker" data-anim="fade-down">Repository</p>
           <h2 class="slide-title" data-anim="fade-up">既然 AI 做不明白 PPT...</h2>
           <p class="big-line" data-anim="fade-up">改用 <span class="shiny">HTML</span></p>
           <a class="repo-link" href="https://github.com/lewislulu/html-ppt-skill">github.com/lewislulu/html-ppt-skill</a>
@@ -128,11 +117,9 @@
     <section class="slide ep-slide fx-gradient install-slide" data-title="SKILL安装">
       <div class="gradient-blinds" aria-hidden="true"></div>
       <div class="slide-shell">
-        <p class="kicker" data-anim="fade-down">Install</p>
         <h2 class="slide-title" data-anim="fade-up">SKILL 安装</h2>
         <div class="install-grid">
           <div class="step-card" data-anim="fade-up">
-            <span class="step-num">01</span>
             <h3>先得有 nodeJS 环境</h3>
           </div>
           <pre class="code-card" data-anim="fade-up"><code>npm install openskills</code></pre>
@@ -172,7 +159,7 @@ openskills sync</code></pre>
           <div>开源多智能体 SuperAgent 框架，面向研究 + 作品产出；代码能力稍弱</div>
           <div class="agent-name">LobeHub</div>
           <div>体验优先的多模型统一平台，交互极佳、部署极简单；执行能力弱，多智能体协作浅</div>
-          <div class="agent-name">Hermes Agent</div>
+          <div class="agent-name">Hermes</div>
           <div>极简单智能体执行引擎，无框架依赖、代码透明、部署成本极低；无并行、记忆弱、安全性差</div>
           <div class="agent-name">Claude Code</div>
           <div>专业编程助手，编码能力 SOTA，IDE / CLI 深度集成；仅支持 Claude 模型，研究能力几乎为零</div>
@@ -198,7 +185,7 @@ cp .env.example .env</code></pre>
           <div class="setup-notes anim-stagger-list">
             <div class="callout">配置好模型和 API KEY。</div>
             <div class="callout">直接用 make 来启动。</div>
-            <div class="callout warn">启动时可能会有故障，直接问 Cursor。</div>
+            <div class="callout warn">遇到棘手的情况都直接问Cursor</div>
           </div>
         </div>
       </div>
@@ -221,7 +208,6 @@ cp .env.example .env</code></pre>
     <section class="slide ep-slide fx-chroma statement-slide" data-title="huashu-design">
       <div class="chroma-blinds" aria-hidden="true"></div>
       <div class="slide-shell center-copy">
-        <p class="kicker" data-anim="fade-down">Design Skill</p>
         <h2 class="section-title" data-anim="rise-in">huashu-design</h2>
         <p class="lede wide" data-anim="fade-up">让 AI 的前端不像 AI 做的</p>
       </div>
@@ -234,7 +220,6 @@ cp .env.example .env</code></pre>
       <div class="chroma-blinds" aria-hidden="true"></div>
       <div class="slide-shell two-column">
         <div class="statement-copy">
-          <p class="kicker" data-anim="fade-down">Animation</p>
           <h2 class="slide-title shiny" data-anim="fade-up">GSAP</h2>
           <p class="lede">一个开源的动画库，可以用简单的 API 在网页上做动画</p>
           <div class="code-pills">
@@ -255,7 +240,6 @@ cp .env.example .env</code></pre>
     <section class="slide ep-slide fx-chroma stack-slide" data-title="其他前端技术栈">
       <div class="chroma-blinds" aria-hidden="true"></div>
       <div class="slide-shell">
-        <p class="kicker" data-anim="fade-down">Stack</p>
         <h2 class="slide-title" data-anim="fade-up">其他前端技术栈</h2>
         <div class="tech-stack anim-stagger-list">
           <div class="tech-card">three.js</div>
@@ -270,7 +254,6 @@ cp .env.example .env</code></pre>
     <section class="slide ep-slide fx-chroma install-slide" data-title="启动开发服务器">
       <div class="chroma-blinds" aria-hidden="true"></div>
       <div class="slide-shell">
-        <p class="kicker" data-anim="fade-down">Before Frontend Work</p>
         <h2 class="slide-title" data-anim="fade-up">在开始做前端之前</h2>
         <pre class="code-card terminal" data-anim="fade-up"><code>npm run dev</code></pre>
         <p class="localhost" data-anim="fade-up">默认在 <code>localhost:5173</code></p>
@@ -283,8 +266,7 @@ cp .env.example .env</code></pre>
     <section class="slide ep-slide fx-chroma workflow-slide" data-title="Codex + Cursor">
       <div class="chroma-blinds" aria-hidden="true"></div>
       <div class="slide-shell">
-        <p class="kicker" data-anim="fade-down">Workflow</p>
-        <h2 class="slide-title" data-anim="fade-up">前端协作方式</h2>
+        <h2 class="slide-title" data-anim="fade-up">粒度决定工具选择</h2>
         <div class="workflow-steps anim-stagger-list">
           <div class="workflow-step">
             <span>01</span>
@@ -305,9 +287,8 @@ cp .env.example .env</code></pre>
     <section class="slide ep-slide fx-laser thanks-slide" data-title="特别致谢">
       <div class="laser-field" aria-hidden="true"></div>
       <div class="slide-shell center-copy">
-        <p class="kicker shiny" data-anim="fade-down">Special Thanks</p>
-        <h2 class="thanks-title shiny" data-anim="rise-in">特别致谢：张老师</h2>
-        <p class="lede wide" data-anim="fade-up">没有张老师就没有 AgentFlow！</p>
+        <h2 class="thanks-title shiny" data-anim="rise-in">特别致谢：张一川老师</h2>
+        <p class="lede wide" data-anim="fade-up">没有张老师就没有AgentFlow！</p>
       </div>
       <aside class="notes">
         结尾页。真诚感谢张老师，然后可以邀请大家交流、提问或继续一起折腾 AgentFlow。

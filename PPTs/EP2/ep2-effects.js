@@ -244,6 +244,146 @@ void main(){
     return shader;
   }
 
+  function parsePx(value, fallback) {
+    const parsed = Number.parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+
+  function drawTrackedText(ctx, text, x, y, tracking) {
+    if (!tracking) {
+      ctx.fillText(text, x, y);
+      return;
+    }
+
+    const chars = Array.from(text);
+    const totalWidth = chars.reduce((sum, char, index) => {
+      return sum + ctx.measureText(char).width + (index ? tracking : 0);
+    }, 0);
+    let cursor = x - totalWidth / 2;
+
+    chars.forEach((char, index) => {
+      if (index) cursor += tracking;
+      const width = ctx.measureText(char).width;
+      ctx.fillText(char, cursor + width / 2, y);
+      cursor += width;
+    });
+  }
+
+  function drawLaserCanvasText(ctx, item, width, height, now) {
+    const rect = item.el.getBoundingClientRect();
+    const fieldRect = item.field.getBoundingClientRect();
+    const computed = window.getComputedStyle(item.el);
+    const fontSize = parsePx(computed.fontSize, 48);
+    const lineHeight = parsePx(computed.lineHeight, fontSize * 1.08);
+    const letterSpacing = computed.letterSpacing === 'normal' ? 0 : parsePx(computed.letterSpacing, 0);
+    const x = (rect.left - fieldRect.left + rect.width / 2) * item.dpr;
+    const y = (rect.top - fieldRect.top + rect.height / 2) * item.dpr;
+    const font = `${computed.fontStyle} ${computed.fontWeight} ${fontSize * item.dpr}px ${computed.fontFamily}`;
+    const tracking = letterSpacing * item.dpr;
+    const lightX = width * 0.54;
+    const lightY = height * 1.03;
+    const radius = height * 1.08;
+    const dx = x - lightX;
+    const dy = y - lightY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const reach = clamp(1 - distance / radius, 0, 1);
+    const pulse = 0.96 + Math.sin(now * 0.0014 + distance * 0.004) * 0.035;
+    const lit = clamp(0.33 + Math.pow(reach, 1.22) * 0.9 * pulse, 0, 1);
+    const shadowScale = clamp(distance / radius, 0, 1);
+
+    ctx.save();
+    ctx.font = font;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round';
+
+    ctx.shadowColor = `rgba(0, 0, 0, ${0.32 + shadowScale * 0.28})`;
+    ctx.shadowBlur = (3 + fontSize * 0.05 * shadowScale) * item.dpr;
+    ctx.shadowOffsetX = (dx / Math.max(distance, 1)) * fontSize * 0.035 * item.dpr;
+    ctx.shadowOffsetY = (dy / Math.max(distance, 1)) * fontSize * 0.035 * item.dpr;
+    ctx.fillStyle = `rgba(6, 7, 12, ${0.68 - lit * 0.2})`;
+    drawTrackedText(ctx, item.text, x, y, tracking);
+
+    const gradient = ctx.createRadialGradient(lightX, lightY, radius * 0.04, lightX, lightY, radius);
+    gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+    gradient.addColorStop(0.1, 'rgba(232, 237, 255, .98)');
+    gradient.addColorStop(0.22, 'rgba(154, 168, 255, .9)');
+    gradient.addColorStop(0.4, 'rgba(83, 94, 168, .66)');
+    gradient.addColorStop(0.64, 'rgba(38, 44, 78, .42)');
+    gradient.addColorStop(0.82, 'rgba(18, 21, 36, .28)');
+    gradient.addColorStop(1, 'rgba(9, 11, 18, .16)');
+
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.fillStyle = gradient;
+    drawTrackedText(ctx, item.text, x, y, tracking);
+
+    const hotSpot = ctx.createRadialGradient(lightX, lightY, radius * 0.14, lightX, lightY, radius * 0.58);
+    hotSpot.addColorStop(0, `rgba(255,255,255,${0.48 * lit})`);
+    hotSpot.addColorStop(0.38, `rgba(194,204,255,${0.32 * lit})`);
+    hotSpot.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = hotSpot;
+    drawTrackedText(ctx, item.text, x, y, tracking);
+    ctx.restore();
+  }
+
+  function initLaserTextLayer(container) {
+    const slide = container.closest('.fx-laser');
+    if (!slide) return;
+
+    const textEls = Array.from(slide.querySelectorAll('.slide-shell .mega-title, .slide-shell .thanks-title, .slide-shell .cover-subtitle, .slide-shell .byline, .slide-shell .lede, .slide-shell .kicker'))
+      .filter((el) => el.textContent.trim());
+    if (!textEls.length) return;
+
+    const canvas = document.createElement('canvas');
+    canvas.className = 'laser-text-canvas';
+    canvas.setAttribute('aria-hidden', 'true');
+    container.appendChild(canvas);
+
+    const ctx = canvas.getContext('2d', { alpha: true });
+    if (!ctx) return;
+
+    let dpr = 1;
+    let width = 0;
+    let height = 0;
+
+    function resizeTextCanvas() {
+      const rect = container.getBoundingClientRect();
+      dpr = clamp(window.devicePixelRatio || 1, 1, 2);
+      width = Math.max(1, Math.floor(rect.width * dpr));
+      height = Math.max(1, Math.floor(rect.height * dpr));
+      canvas.width = width;
+      canvas.height = height;
+      canvas.style.width = Math.max(1, Math.floor(rect.width)) + 'px';
+      canvas.style.height = Math.max(1, Math.floor(rect.height)) + 'px';
+    }
+
+    function renderText(now) {
+      const rect = container.getBoundingClientRect();
+      const nextWidth = Math.max(1, Math.floor(rect.width * dpr));
+      const nextHeight = Math.max(1, Math.floor(rect.height * dpr));
+      if (nextWidth !== width || nextHeight !== height) resizeTextCanvas();
+
+      ctx.clearRect(0, 0, width, height);
+      textEls.forEach((el) => {
+        drawLaserCanvasText(ctx, {
+          el,
+          field: container,
+          text: el.textContent.trim(),
+          dpr
+        }, width, height, now);
+      });
+      requestAnimationFrame(renderText);
+    }
+
+    resizeTextCanvas();
+    slide.classList.add('laser-canvas-text-ready');
+    requestAnimationFrame(renderText);
+  }
+
   function initLaserFlowField(container) {
     const canvas = document.createElement('canvas');
     canvas.className = 'laser-flow-canvas';
@@ -298,14 +438,14 @@ void main(){
     gl.uniform1f(uniforms.uBeamXFrac, 0.1);
     gl.uniform1f(uniforms.uBeamYFrac, -0.50);
     gl.uniform1f(uniforms.uFlowSpeed, 0.56);
-    gl.uniform1f(uniforms.uVLenFactor, 2.4);
+    gl.uniform1f(uniforms.uVLenFactor, 3.25);
     gl.uniform1f(uniforms.uHLenFactor, 0.57);
-    gl.uniform1f(uniforms.uFogIntensity, 0.68);
+    gl.uniform1f(uniforms.uFogIntensity, 0.86);
     gl.uniform1f(uniforms.uFogScale, 0.28);
     gl.uniform1f(uniforms.uWSpeed, 27);
-    gl.uniform1f(uniforms.uWIntensity, 1.7);
+    gl.uniform1f(uniforms.uWIntensity, 2.15);
     gl.uniform1f(uniforms.uFlowStrength, 0.3);
-    gl.uniform1f(uniforms.uDecay, 3);
+    gl.uniform1f(uniforms.uDecay, 3.45);
     gl.uniform1f(uniforms.uFalloffStart, 1.2);
     gl.uniform1f(uniforms.uFogFallSpeed, 1.82);
     gl.uniform3f(uniforms.uColor, color.r, color.g, color.b);
@@ -366,6 +506,7 @@ void main(){
       mouse.y = 0;
     }, { passive: true });
     requestAnimationFrame(render);
+    initLaserTextLayer(container);
   }
 
   document.querySelectorAll('.laser-field').forEach(initLaserFlowField);
