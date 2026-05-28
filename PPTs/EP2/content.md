@@ -1,27 +1,48 @@
+> Using --- as page separator.
+> Using ![插图](./path/to/image.png) to insert images.
+> Using @ to indicate which component(look at ./components) to use in one page.
+> For all pages, use SplashCursor.
+
+---
+@ ShinyText
+@ LaserFlow
+
 # AgentFlow Salon --EP2
 
 by ZYT
 
 ---
+(A black background)
 
 ![插图](./github-profile.png)
 
 ---
-> Using --- as page separator.
+
+@ ShinyText
+@ TwilightLines
 
 ## AI新闻
 
 ---
 
-- DeepSeek-v4-pro永久降价
-- Gemini全模态新模型发布
+@ TwilightLines
+
+- DeepSeek-v4-pro永久降价 ![插图](./deepseek-discount`.png)
+- Gemini全模态新模型发布 ![插图](./gemini-3-5.webp)
 - Codex/Claude发布Goal模式
 - 豆包即将推出付费产品
 
 
 ---
 
+@ ShinyText
+@ GradientBlinds
+
 ## HTML-PPT
+
+---
+
+@ GradientBlinds
 
 URL: https://github.com/lewislulu/html-ppt-skill
 
@@ -32,9 +53,13 @@ URL: https://github.com/lewislulu/html-ppt-skill
 
 ---
 
+@ GradientBlinds
+
 ![插图](./hero.gif)
 
 ---
+
+@ GradientBlinds
 
 SKILL安装：
 
@@ -56,12 +81,17 @@ openskills sync
 
 ---
 
+@ ShinyText
+@ DotField
+
 
 ## DeerFlow
 
-更智能，更炫酷，更可控，自定义的
+更智能，更炫酷，更可控，自定义
 
 ---
+
+@ DotField
 
 
 | Agent名称       | 与DeerFlow的核心对比                                                                 |
@@ -72,6 +102,9 @@ openskills sync
 | **Claude Code** | 专业编程助手，编码能力SOTA，IDE/CLI深度集成；仅支持Claude模型，研究能力几乎为零       |
 
 ---
+
+@ DotField
+
 
 配置
 
@@ -93,15 +126,23 @@ cp .env.example .env
 
 ---
 
+@ ShinyText
+@ ChromaBlinds
 
 ## AI前端技巧
 
 ---
 
+@ ChromaBlinds
+
 huashu-design
 
+让AI的前端不像AI做的
 
 ---
+
+@ ChromaBlinds
+
 
 GSAP
 
@@ -119,12 +160,18 @@ GSAP-skills
 
 ---
 
+@ ChromaBlinds
+
+
 其他前端技术栈
 
 - three.js
 - vue/react
 
 ---
+
+@ ChromaBlinds
+
 
 在开始做前端之前
 
@@ -137,10 +184,16 @@ npm run dev
 
 ---
 
+@ ChromaBlinds
+
+
 - 用codex生成第一版
 - cursor：组件级微调
 
 ---
+
+@ LaserFlow
+@ ShinyText
 
 特别致谢：张老师
 没有张老师就没有AgentFlow！
