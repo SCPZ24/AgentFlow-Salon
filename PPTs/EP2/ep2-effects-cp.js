@@ -249,91 +249,216 @@ void main(){
     return Number.isFinite(parsed) ? parsed : fallback;
   }
 
-  function laserBreath(now) {
-    const wave = (Math.sin(now * 0.00145) + 1) / 2;
-    const eased = wave * wave * (3 - 2 * wave);
-    return 0.56 + eased * 0.62;
+  function easeOutCubic(t) {
+    return 1 - Math.pow(1 - clamp(t, 0, 1), 3);
   }
 
-  function drawTrackedText(ctx, text, x, y, tracking) {
+  function measureTrackedWidth(ctx, text, tracking) {
+    const chars = Array.from(text);
+    return chars.reduce((sum, char, index) => {
+      return sum + ctx.measureText(char).width + (index ? tracking : 0);
+    }, 0);
+  }
+
+  function paintTrackedText(ctx, text, x, y, tracking, stroke) {
     if (!tracking) {
-      ctx.fillText(text, x, y);
+      if (stroke) ctx.strokeText(text, x, y);
+      else ctx.fillText(text, x, y);
       return;
     }
 
     const chars = Array.from(text);
-    const totalWidth = chars.reduce((sum, char, index) => {
-      return sum + ctx.measureText(char).width + (index ? tracking : 0);
-    }, 0);
+    const totalWidth = measureTrackedWidth(ctx, text, tracking);
     let cursor = x - totalWidth / 2;
 
     chars.forEach((char, index) => {
       if (index) cursor += tracking;
       const width = ctx.measureText(char).width;
-      ctx.fillText(char, cursor + width / 2, y);
+      const cx = cursor + width / 2;
+      if (stroke) ctx.strokeText(char, cx, y);
+      else ctx.fillText(char, cx, y);
       cursor += width;
     });
   }
 
+  function laserTier(el) {
+    if (el.classList.contains('mega-title') || el.classList.contains('thanks-title')) return 'title';
+    if (el.classList.contains('cover-subtitle') || el.classList.contains('lede')) return 'sub';
+    return 'micro';
+  }
+
+  /* "Ignited / charged" title treatment.
+   * Keeps the dark, lit-from-below mood but adds: floor reflection, an
+   * ice-blue charged glow halo, a luminous edge stroke that intensifies toward
+   * the beam, a hot core where the beam pierces, and a light sweep that runs
+   * once on reveal then settles into a slow shimmer. */
   function drawLaserCanvasText(ctx, item, width, height, now) {
     const rect = item.el.getBoundingClientRect();
     const fieldRect = item.field.getBoundingClientRect();
     const computed = window.getComputedStyle(item.el);
     const fontSize = parsePx(computed.fontSize, 48);
-    const lineHeight = parsePx(computed.lineHeight, fontSize * 1.08);
     const letterSpacing = computed.letterSpacing === 'normal' ? 0 : parsePx(computed.letterSpacing, 0);
     const x = (rect.left - fieldRect.left + rect.width / 2) * item.dpr;
     const y = (rect.top - fieldRect.top + rect.height / 2) * item.dpr;
-    const font = `${computed.fontStyle} ${computed.fontWeight} ${fontSize * item.dpr}px ${computed.fontFamily}`;
+    const fsDev = fontSize * item.dpr;
+    const font = `${computed.fontStyle} ${computed.fontWeight} ${fsDev}px ${computed.fontFamily}`;
     const tracking = letterSpacing * item.dpr;
-    const breath = laserBreath(now);
+
     const lightX = width * 0.54;
     const lightY = height * 1.03;
-    const radius = height * (0.98 + breath * 0.34);
+    const radius = height * 1.08;
     const dx = x - lightX;
     const dy = y - lightY;
     const distance = Math.sqrt(dx * dx + dy * dy);
     const reach = clamp(1 - distance / radius, 0, 1);
-    const shimmer = 0.985 + Math.sin(now * 0.0022 + distance * 0.004) * 0.018;
-    const lit = clamp(0.3 + Math.pow(reach, 0.92) * 1.12 * breath * shimmer, 0, 1);
-    const shadowScale = clamp(distance / radius, 0, 1);
+    const pulse = 0.96 + Math.sin(now * 0.0013 + distance * 0.004) * 0.04;
+    const lit = clamp(0.32 + Math.pow(reach, 1.15) * 0.95 * pulse, 0, 1);
+
+    const tier = item.tier;
+    const reduce = item.reduce;
+    const reveal = item.reveal;
+    const appear = reduce ? 1 : easeOutCubic(reveal);
+    if (appear <= 0.001) return;
 
     ctx.save();
     ctx.font = font;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.lineJoin = 'round';
+    ctx.miterLimit = 2;
 
-    ctx.shadowColor = `rgba(0, 0, 0, ${0.32 + shadowScale * 0.28})`;
-    ctx.shadowBlur = (3 + fontSize * 0.05 * shadowScale) * item.dpr;
-    ctx.shadowOffsetX = (dx / Math.max(distance, 1)) * fontSize * 0.035 * item.dpr;
-    ctx.shadowOffsetY = (dy / Math.max(distance, 1)) * fontSize * 0.035 * item.dpr;
-    ctx.fillStyle = `rgba(6, 7, 12, ${0.68 - lit * 0.2})`;
-    drawTrackedText(ctx, item.text, x, y, tracking);
+    const W = measureTrackedWidth(ctx, item.text, tracking);
+    const top = y - fsDev * 0.54;
+    const bot = y + fsDev * 0.54;
+    const riseY = reduce ? 0 : (1 - appear) * fsDev * 0.16;
+    const yy = y + riseY;
+    const topY = top + riseY;
+    const botY = bot + riseY;
 
-    const gradient = ctx.createRadialGradient(lightX, lightY, radius * 0.04, lightX, lightY, radius);
-    gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-    gradient.addColorStop(0.1, 'rgba(232, 237, 255, .98)');
-    gradient.addColorStop(0.22, 'rgba(154, 168, 255, .9)');
-    gradient.addColorStop(0.4, 'rgba(83, 94, 168, .66)');
-    gradient.addColorStop(0.64, 'rgba(38, 44, 78, .42)');
-    gradient.addColorStop(0.82, 'rgba(18, 21, 36, .28)');
-    gradient.addColorStop(1, 'rgba(9, 11, 18, .16)');
+    const strokeW = tier === 'title'
+      ? Math.max(1.5 * item.dpr, fsDev * 0.018)
+      : tier === 'sub'
+        ? Math.max(1.2 * item.dpr, fsDev * 0.026)
+        : Math.max(1 * item.dpr, fsDev * 0.032);
+
+    /* ---- 1. squashed floor reflection (title only) ---- */
+    if (tier === 'title') {
+      const reflAlpha = 0.13 * appear;
+      const baseB = botY + fsDev * 0.06;
+      ctx.save();
+      ctx.translate(0, baseB);
+      ctx.scale(1, -0.5);
+      ctx.translate(0, -baseB);
+      const rg = ctx.createLinearGradient(0, topY, 0, botY);
+      rg.addColorStop(0, 'rgba(120,170,255,0)');
+      rg.addColorStop(0.6, `rgba(132,180,255,${reflAlpha * 0.4})`);
+      rg.addColorStop(1, `rgba(168,206,255,${reflAlpha})`);
+      ctx.fillStyle = rg;
+      ctx.shadowColor = `rgba(90,150,255,${reflAlpha * 0.7})`;
+      ctx.shadowBlur = fsDev * 0.05;
+      paintTrackedText(ctx, item.text, x, yy, tracking, false);
+      ctx.restore();
+    }
+
+    ctx.globalAlpha = appear;
+
+    /* ---- 1b. aura field the title sits in ---- */
+    if (tier !== 'micro') {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const auraR = Math.max(W * 0.62, fsDev * 1.25);
+      const ay = yy + fsDev * 0.12;
+      const aura = ctx.createRadialGradient(x, ay, fsDev * 0.1, x, ay, auraR);
+      aura.addColorStop(0, `rgba(74,134,234,${0.12 + 0.14 * lit})`);
+      aura.addColorStop(0.5, `rgba(52,98,194,${0.05 + 0.07 * lit})`);
+      aura.addColorStop(1, 'rgba(30,60,140,0)');
+      ctx.fillStyle = aura;
+      ctx.fillRect(x - auraR, ay - auraR, auraR * 2, auraR * 2);
+      ctx.restore();
+    }
+
+    /* ---- 2. charged glow halo (outer bloom) ---- */
+    ctx.lineWidth = strokeW * 1.2;
+    ctx.strokeStyle = `rgba(140,188,255,${0.24 + 0.42 * lit})`;
+    ctx.shadowColor = `rgba(110,168,255,${0.6 + 0.4 * lit})`;
+    ctx.shadowBlur = fsDev * (tier === 'title' ? 0.24 : 0.14) * (0.6 + 0.6 * lit);
+    paintTrackedText(ctx, item.text, x, yy, tracking, true);
+    paintTrackedText(ctx, item.text, x, yy, tracking, true);
+    paintTrackedText(ctx, item.text, x, yy, tracking, true);
 
     ctx.shadowColor = 'transparent';
     ctx.shadowBlur = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-    ctx.fillStyle = gradient;
-    drawTrackedText(ctx, item.text, x, y, tracking);
 
-    const hotSpot = ctx.createRadialGradient(lightX, lightY, radius * 0.14, lightX, lightY, radius * 0.58);
-    hotSpot.addColorStop(0, `rgba(255,255,255,${0.52 * lit * breath})`);
-    hotSpot.addColorStop(0.38, `rgba(194,204,255,${0.34 * lit * breath})`);
-    hotSpot.addColorStop(1, 'rgba(255,255,255,0)');
+    /* ---- 3. dark body fill (keep the dark, beam-lit mood) ---- */
+    const body = ctx.createLinearGradient(0, topY, 0, botY);
+    body.addColorStop(0, `rgba(7,10,20,0.95)`);
+    body.addColorStop(0.5, `rgba(15,24,50,${0.9 + 0.06 * lit})`);
+    body.addColorStop(1, `rgba(${Math.round(26 + 44 * lit)},${Math.round(44 + 66 * lit)},${Math.round(90 + 96 * lit)},${0.86 + 0.12 * lit})`);
+    ctx.fillStyle = body;
+    paintTrackedText(ctx, item.text, x, yy, tracking, false);
+
+    /* ---- 3b. interior ignite charge, rising from the beam side ---- */
+    ctx.globalCompositeOperation = 'lighter';
+    const ignite = ctx.createLinearGradient(0, topY, 0, botY);
+    ignite.addColorStop(0, 'rgba(48,84,168,0)');
+    ignite.addColorStop(0.55, `rgba(70,124,224,${0.07 * lit})`);
+    ignite.addColorStop(1, `rgba(120,176,255,${0.24 * lit})`);
+    ctx.fillStyle = ignite;
+    paintTrackedText(ctx, item.text, x, yy, tracking, false);
     ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = hotSpot;
-    drawTrackedText(ctx, item.text, x, y, tracking);
+
+    /* ---- 4. luminous ice-blue edge stroke ---- */
+    const edge = ctx.createLinearGradient(0, topY, 0, botY);
+    const edgeLit = 0.62 + 0.38 * lit;
+    edge.addColorStop(0, `rgba(132,176,242,${(0.78 * edgeLit).toFixed(3)})`);
+    edge.addColorStop(0.5, `rgba(176,212,255,${(0.9 * edgeLit).toFixed(3)})`);
+    edge.addColorStop(1, `rgba(230,243,255,${(1.0 * edgeLit).toFixed(3)})`);
+    ctx.lineWidth = strokeW;
+    ctx.strokeStyle = edge;
+    ctx.shadowColor = `rgba(158,202,255,${0.4 + 0.4 * lit})`;
+    ctx.shadowBlur = fsDev * 0.07 * (0.5 + 0.5 * lit);
+    paintTrackedText(ctx, item.text, x, yy, tracking, true);
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+
+    /* ---- 5. hot core where the beam pierces ---- */
+    ctx.globalCompositeOperation = 'lighter';
+    const hot = ctx.createRadialGradient(lightX, lightY, radius * 0.08, lightX, lightY, radius * 0.62);
+    hot.addColorStop(0, `rgba(255,255,255,${0.55 * lit})`);
+    hot.addColorStop(0.4, `rgba(196,222,255,${0.3 * lit})`);
+    hot.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = hot;
+    paintTrackedText(ctx, item.text, x, yy, tracking, false);
+
+    /* ---- 6. light sweep (reveal once, then slow shimmer) ---- */
+    let sweep = -1;
+    let sweepGain = 1;
+    if (!reduce) {
+      if (reveal < 1) {
+        sweep = reveal;
+      } else {
+        const period = 5200;
+        const phase = (now % period) / period;
+        if (phase < 0.3) {
+          sweep = phase / 0.3;
+          sweepGain = 0.6;
+        }
+      }
+    }
+    if (sweep >= 0) {
+      const bandHalf = W * 0.14 + fsDev * 0.22;
+      const sx = (x - W / 2 - bandHalf) + easeOutCubic(sweep) * (W + 2 * bandHalf);
+      const sg = ctx.createLinearGradient(sx - bandHalf, 0, sx + bandHalf, 0);
+      sg.addColorStop(0, 'rgba(255,255,255,0)');
+      sg.addColorStop(0.5, `rgba(246,251,255,${0.92 * sweepGain})`);
+      sg.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.lineWidth = strokeW * 1.5;
+      ctx.strokeStyle = sg;
+      ctx.shadowColor = `rgba(190,224,255,${0.85 * sweepGain})`;
+      ctx.shadowBlur = fsDev * 0.12;
+      paintTrackedText(ctx, item.text, x, yy, tracking, true);
+    }
+
     ctx.restore();
   }
 
@@ -342,7 +467,8 @@ void main(){
     if (!slide) return;
 
     const textEls = Array.from(slide.querySelectorAll('.slide-shell .mega-title, .slide-shell .thanks-title, .slide-shell .cover-subtitle, .slide-shell .byline, .slide-shell .lede, .slide-shell .kicker'))
-      .filter((el) => el.textContent.trim());
+      .filter((el) => el.textContent.trim())
+      .map((el) => ({ el, tier: laserTier(el) }));
     if (!textEls.length) return;
 
     const canvas = document.createElement('canvas');
@@ -353,9 +479,15 @@ void main(){
     const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
 
+    const reduceMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
+
     let dpr = 1;
     let width = 0;
     let height = 0;
+    let revealStart = null;
+    let wasActive = false;
+    const REVEAL_MS = 1150;
+    const STAGGER = 0.16;
 
     function resizeTextCanvas() {
       const rect = container.getBoundingClientRect();
@@ -374,13 +506,29 @@ void main(){
       const nextHeight = Math.max(1, Math.floor(rect.height * dpr));
       if (nextWidth !== width || nextHeight !== height) resizeTextCanvas();
 
+      const isActive = slide.classList.contains('is-active');
+      if (isActive && !wasActive) revealStart = now;
+      if (isActive && revealStart === null) revealStart = now;
+      wasActive = isActive;
+
+      const reduce = reduceMQ.matches;
+      const base = (reduce || revealStart === null)
+        ? (revealStart === null ? 0 : 1)
+        : clamp((now - revealStart) / REVEAL_MS, 0, 1);
+
       ctx.clearRect(0, 0, width, height);
-      textEls.forEach((el) => {
+      textEls.forEach((item, i) => {
+        const reveal = reduce
+          ? 1
+          : clamp((base - i * STAGGER) / (1 - STAGGER * 1.2), 0, 1);
         drawLaserCanvasText(ctx, {
-          el,
+          el: item.el,
+          tier: item.tier,
           field: container,
-          text: el.textContent.trim(),
-          dpr
+          text: item.el.textContent.trim(),
+          dpr,
+          reveal,
+          reduce
         }, width, height, now);
       });
       requestAnimationFrame(renderText);
@@ -494,16 +642,12 @@ void main(){
       if (rect.width !== width || rect.height !== height) resizeLaser();
       const visible = rect.bottom > 0 && rect.top < window.innerHeight;
       if (visible) {
-        const breath = laserBreath(now);
         gl.useProgram(program);
         gl.uniform1f(uniforms.iTime, now / 1000);
         gl.uniform4f(uniforms.iMouse, mouse.x, mouse.y, 0, 0);
         gl.uniform1f(uniforms.uFlowTime, flowTime);
         gl.uniform1f(uniforms.uFogTime, fogTime);
         gl.uniform1f(uniforms.uFade, fade);
-        gl.uniform1f(uniforms.uFogIntensity, 0.62 + breath * 0.42);
-        gl.uniform1f(uniforms.uWIntensity, 1.55 + breath * 0.78);
-        gl.uniform1f(uniforms.uFlowStrength, 0.22 + breath * 0.16);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
       }
       requestAnimationFrame(render);
