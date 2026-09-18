@@ -28,9 +28,8 @@
 
 ### Codex
 
-Codex有什么值得演示的，别的Agent Harness没有的功能吗？
-我能想到的：
-- 最强的computer use
+
+- computer use在blender上建模+形成网页。
 - 在web上annotation来改前端。
 
 ### Pi

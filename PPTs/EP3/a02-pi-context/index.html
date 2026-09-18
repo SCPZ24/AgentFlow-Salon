@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A02 · Pi 上下文装配台</title>
+<style>
+:root{--bg:#f6f4ef;--paper:#fffefa;--ink:#263c40;--muted:#687777;--line:#d9dfd9;--blue:#087f95;--blue-soft:#e4f3f4;--amber:#aa651d;--amber-soft:#fcf0dc;--purple:#8055a5;--purple-soft:#f2eaf8;--green:#277653;--green-soft:#e8f3e9;--red:#b34b41;--red-soft:#fbeae5;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:var(--bg);font-synthesis:none}*{box-sizing:border-box}body{margin:0}button{font:inherit;font-size:22px;color:inherit;cursor:pointer;border:1px solid var(--line);border-radius:10px;background:var(--paper);padding:9px 14px;white-space:nowrap}button:hover:not(:disabled){border-color:var(--blue)}button:focus-visible{outline:3px solid var(--blue);outline-offset:3px}button:disabled{opacity:.35;cursor:default}.app{height:100dvh;min-height:720px;max-width:2100px;margin:auto;padding:24px 28px 16px;display:flex;flex-direction:column;gap:12px}.header{display:flex;justify-content:space-between;align-items:center;gap:20px}.eyebrow{font-size:15px;font-weight:750;letter-spacing:2.5px;color:var(--blue);margin-bottom:8px}h1{font-size:clamp(36px,3vw,55px);letter-spacing:-1.5px;line-height:1.15;margin:0;font-weight:700}h1 span{font-weight:400;color:var(--muted)}.counter{text-align:right;white-space:nowrap}.counter b{font-size:32px;font-weight:600;color:var(--blue)}.counter small{display:block;font-size:18px;color:var(--muted);margin-top:4px}.caption{font-size:26px;line-height:1.3;min-height:34px;margin:0;display:flex;align-items:center;gap:14px}.caption:before{content:"";width:26px;height:3px;flex-shrink:0;background:var(--blue)}.stage{flex:1;min-height:0;display:grid;grid-template-columns:26fr 28fr 46fr;grid-template-rows:minmax(0,1fr);gap:24px;position:relative}.col{display:flex;flex-direction:column;min-width:0;min-height:0;gap:9px}.col-title{font-size:22px;font-weight:600;margin:0;line-height:28px}.sources{flex:1;display:flex;flex-direction:column;justify-content:space-between;gap:5px}.source{font-size:22px;line-height:1.25;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);position:relative}.source.active{border-color:var(--blue);background:var(--blue-soft)}.source small{font-size:16px;color:var(--muted);margin-left:6px}.box{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:12px 16px;min-width:0;position:relative}.box.active{border-color:var(--blue);box-shadow:0 0 0 3px #087f9512}.assembler{flex:1;display:flex;flex-direction:column;justify-content:center;background:var(--amber-soft);border-color:#ead4b3;padding:22px}.assembler .kicker{color:var(--amber);font-size:18px;letter-spacing:1px;margin-bottom:10px}.assembler h2{font-size:32px;line-height:1.25;margin:0 0 16px;font-weight:650}.assembler p{font-size:22px;line-height:1.5;margin:0}.action{border-top:1px solid #e1cba9;padding-top:14px;margin-top:20px;color:var(--amber);font-size:22px;line-height:1.4}.sample-bars{display:flex;gap:5px;margin-top:16px;height:9px}.sample-bars i{width:20%;background:var(--amber);border-radius:3px;opacity:.28}.sample-bars i.on{opacity:.8}.conflict{display:inline-block;background:var(--red-soft);color:var(--red);padding:3px 8px;border-radius:5px;font-size:18px;margin-top:12px}.request{gap:8px}.type{font:18px ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--blue);margin-bottom:7px}.system{min-height:124px}.body{font-size:22px;line-height:1.3}.base{color:var(--ink)}.base.custom{color:var(--purple)}.supplements{font-size:22px;line-height:1.35;color:var(--muted);margin-top:4px}.tools{display:flex;align-items:center;gap:20px;min-height:58px}.tools .type{margin:0}.tools .body{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}.messages{flex:1;min-height:116px}.messages .type{margin-bottom:5px}.message{font-size:22px;line-height:1.32;white-space:nowrap}.message .role{color:var(--muted)}.message.skill{color:var(--purple)}.message.summary{color:var(--green)}.empty{font-size:22px;color:var(--muted)}.local{display:flex;align-items:center;gap:16px;border-top:1px solid var(--line);padding-top:10px;min-height:49px;font-size:22px}.local-label{color:var(--muted)}.local-preview{padding:5px 16px;border-radius:8px;background:#ebe8de;min-width:190px;line-height:29px}.local-preview.dark{background:#263c40;color:#fffefa}.local button{padding:6px 12px;font-size:18px}.local .hint{margin-left:auto;font-size:18px;color:var(--muted)}.phase-nav{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;border-top:1px solid var(--line);padding-top:8px}.phase{border:0;background:transparent;color:var(--muted);padding:5px 2px;font-size:18px;display:flex;flex-direction:row;justify-content:center;align-items:center;gap:9px}.phase .num{font:15px ui-monospace,monospace;opacity:.7}.phase.current{color:var(--blue);background:var(--blue-soft);font-weight:650}.toolbar{display:flex;align-items:center;gap:8px}.primary{background:var(--ink);color:white;border-color:var(--ink)}.quiet{background:transparent}.small-button{font-size:18px;padding:10px 12px}.spacer{flex:1}.selected{color:var(--purple);border-color:#c7afd9;background:var(--purple-soft)}.footnote{display:flex;justify-content:space-between;gap:16px;color:var(--muted);font-size:15px;line-height:1.3}.route{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:2}.route path{fill:none;stroke:var(--blue);stroke-width:2;stroke-dasharray:5 6;opacity:.5}.flying{position:fixed;z-index:20;pointer-events:none;background:var(--blue);color:#fff;padding:10px 16px;border-radius:10px;font-size:22px;box-shadow:0 8px 24px #263c4020}.reduced *{animation:none!important;transition:none!important}@media(min-height:950px){.app{padding:38px 48px 26px;gap:22px}.source{padding:13px 16px}.stage{gap:32px}.system{min-height:158px}.tools{min-height:85px}.box{padding:20px 24px}.assembler{padding:30px}.assembler h2{font-size:38px}.assembler p{font-size:26px}.message{line-height:1.5}.caption{font-size:30px}.local{min-height:60px}.phase-nav{padding-top:14px}.phase{padding:8px 3px}}@media(max-width:1400px){.app{gap:10px}.stage{gap:18px}.assembler{padding:17px}.assembler h2{font-size:28px}.toolbar{gap:7px}.small-button{padding:10px}.source{padding:7px 11px}.system{min-height:120px}.col{gap:7px}.tools{min-height:56px}.messages{min-height:111px}.local .hint{font-size:16px}.action{margin-top:14px;padding-top:12px}}
+</style>
+</head>
+<body>
+<main class="app">
+<header class="header"><div><div class="eyebrow">AGENTFLOW SALON / EP3 · A02</div><h1>这一轮，<span>带上需要的信息</span></h1></div><div class="counter"><b id="phase-label"></b><small id="step-count"></small></div></header>
+<p class="caption" id="caption" aria-live="polite"></p>
+<section class="stage" aria-label="Pi 上下文装配台">
+<div class="col"><h2 class="col-title">资源来源</h2><div class="sources">
+<div class="source" id="src-base">Harness 默认规则</div>
+<div class="source" id="src-append">APPEND_SYSTEM.md</div>
+<div class="source" id="src-agents">全局 / 项目 AGENTS</div>
+<div class="source" id="src-skill">skills 目录与正文</div>
+<div class="source" id="src-custom">SYSTEM.md</div>
+<div class="source" id="src-tools">工具 · 扩展</div>
+<div class="source" id="src-session">模板 · 会话历史</div>
+</div></div>
+<div class="col"><h2 class="col-title">装配 / 选择</h2><div class="box assembler" id="assembly"><div class="kicker">HARNESS · 本轮装配</div><h2 id="assembly-title"></h2><p id="assembly-body"></p><div class="action" id="assembly-action"></div><div id="sample-view"></div></div></div>
+<div class="col request" id="request"><h2 class="col-title">本次请求的逻辑结构</h2><div class="box system" id="system"><div class="type">system_prompt</div><div class="body base" id="base"></div><div class="supplements" id="supplements"></div></div><div class="box tools" id="tools"><div class="type">tools</div><div class="body" id="tool-body"></div></div><div class="box messages" id="messages"><div class="type">messages</div><div id="message-body"></div></div></div>
+<svg class="route" id="route" aria-hidden="true"><defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" style="stroke:var(--blue);stroke-dasharray:none;opacity:1"/></marker></defs><path id="flow-path" marker-end="url(#arrow)"/></svg>
+</section>
+<div class="local"><span class="local-label">本地状态 · 不发送</span><div class="local-preview" id="local-preview">主题：暖白</div><button id="theme" aria-pressed="false">切换主题</button><span class="hint">仅演示本地 UI；扩展也可改变模型输入</span></div>
+<nav class="phase-nav" id="phases" aria-label="阶段跳转"></nav>
+<div class="toolbar"><button id="prev" aria-label="上一步">← 上一步</button><button id="next" class="primary" aria-label="下一步">下一步 →</button><button id="custom" class="small-button" aria-pressed="false">基础：默认</button><button id="sample" class="small-button" aria-pressed="false">精简、相关</button><span class="spacer"></span><button id="reset" class="quiet small-button">重置 R</button><button id="motion" class="quiet small-button" aria-pressed="false">减少动效</button><button id="fullscreen" class="quiet small-button">全屏 ⛶</button></div>
+<footer class="footnote"><span>逻辑结构示意，非特定 provider 原始请求</span><span>← → 逐步讲解 · 点击阶段跳转 · 样本为教学构造</span></footer>
+</main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const media=matchMedia('(prefers-reduced-motion: reduce)');
+const phases=[['来源',0],['默认基础',1],['系统补充',3],['自定义',7],['工具定义',8],['模板与历史',9],['按需读取',11],['运行与整理',14]];
+// Every index describes a complete paused scene; no state depends on a previous animation.
+const scenes=[
+{g:0,title:'来源 ≠ 消息类型',body:'文件、命令、会话，先是材料。',action:'选择之后，才进入本轮请求。',caption:'先看来源，再看它最终进入哪里。'},
+{g:1,title:'默认身份与规则',body:'由 Harness 提供基础说明。',action:'不是每次都由用户手写。',caption:'默认系统提示词，先装入基础块。',flow:['src-base','system','身份与规则']},
+{g:1,title:'工具的文字简述',body:'基础块可以介绍工具用途。',action:'文字介绍 ≠ 可调用定义。',caption:'系统提示词里的工具简述，仍然是文字。',flow:['src-base','system','工具简述']},
+{g:2,title:'追加补充说明',body:'APPEND_SYSTEM.md 补充基础规则。',action:'追加，不替换基础块。',caption:'补充说明被复制进来，源文件仍在。',flow:['src-append','system','补充说明']},
+{g:2,title:'加载项目规范',body:'示意：全局 + 当前项目的 AGENTS.md。',action:'规则是指令，不是权限屏障。',caption:'加载到的项目说明，进入系统补充。',flow:['src-agents','system','项目规范']},
+{g:2,title:'只列技能目录',body:'seat-check：余票检查规范。',action:'目录可见 ≠ 正文已读。',caption:'先知道有哪些技能，不等于读过所有技能。',flow:['src-skill','system','名称 + 描述']},
+{g:2,title:'补上工作目录',body:'cwd：/campus-day',action:'不自动装入全仓库正文。',caption:'工作目录是定位信息，不是仓库内容。',flow:['assembly','system','cwd']},
+{g:3,title:'基础块可替换',body:'SYSTEM.md 只替换默认基础。',action:'补充、项目、技能、cwd 保留。',caption:'切换基础提示词，已追加的上下文仍然保留。'},
+{g:4,title:'登记活跃工具',body:'read · edit · bash 的参数定义。',action:'schema 独立放入 tools。',caption:'活跃工具定义，进入独立的 tools 区。',flow:['src-tools','tools','工具 schema']},
+{g:5,title:'展开用户命令',body:'/fix-seats → 修复余票文案',action:'模板展开为用户请求。',caption:'提示词模板通常进入 user 消息。',flow:['src-session','messages','user 请求']},
+{g:5,title:'带上会话分支',body:'当前分支里的历史消息。',action:'不自动获得 system 级别。',caption:'历史与本次请求，在 messages 中组织。',flow:['src-session','messages','会话历史']},
+{g:6,title:'出现相关任务',body:'“按项目规范修复余票文案。”',action:'目录里的 seat-check 与本轮相关。',caption:'本轮任务相关，才准备读取对应技能。',flow:['system','assembly','匹配目录信息']},
+{g:6,title:'发出读取请求',body:'read → seat-check/SKILL.md',action:'调用已发出，正文尚未返回。',caption:'Harness 执行读取；列出名称不代表已加载正文。',flow:['assembly','src-skill','read SKILL.md']},
+{g:6,title:'正文按需进入',body:'读取到的技能正文，作为工具结果返回。',action:'只读本次需要的一个技能。',caption:'技能正文沿工具结果路径进入 messages。',flow:['src-skill','messages','SKILL.md 正文']},
+{g:7,title:'追加运行结果',body:'工具输出成为新的历史消息。',action:'本例：余票检查结果。',caption:'实际运行结果，也进入 messages。',flow:['src-tools','messages','工具结果']},
+{g:7,title:'整理较早历史',body:'旧历史可被摘要替代；近期消息保留。',action:'system 与 tools 不变。',caption:'压缩历史材料，不是改变模型权重。',flow:['messages','assembly','较早历史']},
+{g:7,title:'摘要回到消息',body:'旧历史变成摘要，近期请求与工具结果保留。',action:'这一轮，拿到需要的信息。',caption:'上下文工程，是让这一轮拿到需要的信息。',flow:['assembly','messages','旧历史摘要']}
+];
+let state,flights=[];
+function defaults(){return {step:0,base:'default',sample:'compact',theme:'light',motion:media.matches?'reduced':'full'};}
+function parseHash(){const d=defaults(),p=new URLSearchParams(location.hash.slice(1));const choices={base:['default','custom'],sample:['compact','verbose'],theme:['light','dark'],motion:['full','reduced']};for(const [key,value]of p){if(!Object.hasOwn(d,key)||p.getAll(key).length!==1)return defaults();if(key==='step'){if(!/^\d+$/.test(value)||Number(value)>=scenes.length)return defaults();d.step=Number(value);}else if(!choices[key].includes(value))return defaults();else d[key]=value;}return d;}
+function save(){window.history.replaceState(null,'','#'+new URLSearchParams(state));}
+function stop(){flights.forEach(a=>a.cancel());flights=[];document.querySelectorAll('.flying').forEach(e=>e.remove());}
+function go(n){stop();state.step=Math.max(0,Math.min(scenes.length-1,n));save();render(true);}
+function line(text,cls=''){return '<div class="message '+cls+'">'+text+'</div>';}
+function render(animate=false,overrideFlow=null){stop();const n=state.step,s=scenes[n],custom=n>=7&&state.base==='custom',verbose=state.sample==='verbose';document.documentElement.classList.toggle('reduced',state.motion==='reduced');$('phase-label').textContent=phases[s.g][0];$('step-count').textContent='动作 '+(n+1)+' / '+scenes.length+' · 已暂停';$('caption').textContent=s.caption;$('assembly-title').textContent=s.title;$('assembly-body').textContent=s.body;$('assembly-action').textContent=s.action;
+$('sample-view').innerHTML=verbose?'<div class="sample-bars" aria-label="材料相对较长">'+Array(5).fill('<i class="on"></i>').join('')+'</div><span class="conflict">过期命令 · 无关日志 · 规则冲突</span>':'<div class="sample-bars" aria-label="材料相对精简"><i class="on"></i><i></i><i></i><i></i><i></i></div>';
+if(n===4){$('assembly-body').textContent=verbose?'旧框架说明、过期命令，混入本轮需求。':'只改目标文件；保持风格；运行 test:seats。';$('assembly-action').textContent=verbose?'材料变长，不代表更有用。':'不放宽测试；规则仍不是权限屏障。';}
+$('base').classList.toggle('custom',custom);$('base').textContent=n===0?'等待装配':custom?'自定义基础：项目维护助手':n>=2?'默认基础：身份 · 规则 · 工具简述':'默认基础：身份 · 规则';
+const sup=[];if(n>=3)sup.push('APPEND');if(n>=4)sup.push('全局 / 项目 AGENTS');let tail=[];if(n>=5)tail.push('技能目录：名称 / 描述');if(n>=6)tail.push('cwd');$('supplements').innerHTML=(n>=4&&verbose?'APPEND · AGENTS：<span style="color:var(--red)">新旧命令冲突</span>':sup.length?sup.join(' · '):'')+(tail.length?'<br>'+tail.join(' · '):'');
+$('tool-body').textContent=n>=8?'read · edit · bash':'待登记';$('tool-body').classList.toggle('empty',n<8);
+let msgs='';if(n>=10)msgs+=line(n>=16?'旧历史 → 摘要':'较早会话历史',n>=16?'summary':'');if(n>=9)msgs+=line('<span class="role">user</span> · 修复余票文案');if(n>=13)msgs+=line('<span class="role">tool</span> · '+(n>=14?'read SKILL.md → 正文 · 检查结果':'read SKILL.md → 正文'),'skill');else if(n===12)msgs+=line('<span class="role">assistant</span> · read SKILL.md');$('message-body').innerHTML=msgs||'<div class="empty">等待用户请求与历史</div>';
+$('custom').textContent=state.base==='custom'?'基础：SYSTEM.md':'基础：默认';$('custom').setAttribute('aria-pressed',String(state.base==='custom'));$('custom').classList.toggle('selected',state.base==='custom');$('sample').textContent=verbose?'冗长、冲突':'精简、相关';$('sample').setAttribute('aria-pressed',String(verbose));$('sample').classList.toggle('selected',verbose);
+$('local-preview').textContent=state.theme==='dark'?'主题：深色':'主题：暖白';$('local-preview').classList.toggle('dark',state.theme==='dark');$('theme').setAttribute('aria-pressed',String(state.theme==='dark'));
+$('motion').setAttribute('aria-pressed',String(state.motion==='reduced'));$('motion').textContent=state.motion==='reduced'?'减少动效 ✓':'减少动效';$('prev').disabled=n===0;$('next').disabled=n===scenes.length-1;
+$('phases').innerHTML=phases.map((p,i)=>'<button class="phase '+(i===s.g?'current':'')+'" data-step="'+p[1]+'" '+(i===s.g?'aria-current="step"':'')+'><span class="num">'+String(i).padStart(2,'0')+'</span>'+p[0]+'</button>').join('');
+const flow=overrideFlow||(n===7?[custom?'src-custom':'src-base','system',custom?'替换基础块':'默认基础块']:s.flow);document.querySelectorAll('.active').forEach(e=>e.classList.remove('active'));if(flow){$(flow[0]).classList.add('active');$(flow[1]).classList.add('active');}drawFlow(flow,animate);
+}
+function drawFlow(flow,animate){
+$('flow-path').setAttribute('d','');if(!flow)return;
+const a=$(flow[0]).getBoundingClientRect(),b=$(flow[1]).getBoundingClientRect(),r=$('route').getBoundingClientRect(),right=b.x>a.x,x1=right?a.right:a.left,y1=a.y+a.height/2,x2=right?b.left:b.right,y2=b.y+b.height/2;
+const curve=(ax,ay,bx,by)=>`M${ax-r.x} ${ay-r.y} C${(ax+bx)/2-r.x} ${ay-r.y},${(ax+bx)/2-r.x} ${by-r.y},${bx-r.x} ${by-r.y}`;
+const viaAssembly=flow[0].startsWith('src-')&&['system','tools','messages'].includes(flow[1]),m=$('assembly').getBoundingClientRect(),midY=m.y+m.height/2;
+$('flow-path').setAttribute('d',viaAssembly?curve(x1,y1,m.left,midY)+' '+curve(m.right,midY,x2,y2):curve(x1,y1,x2,y2));
+if(!animate||state.motion==='reduced')return;
+const el=document.createElement('div');el.className='flying';el.textContent=flow[2];el.style.left=x1+'px';el.style.top=y1+'px';document.body.append(el);
+const frames=[{transform:'translate(-50%,-50%)',opacity:0},{opacity:1,offset:.15}];
+if(viaAssembly)frames.push({transform:`translate(calc(-50% + ${m.x+m.width/2-x1}px),calc(-50% + ${midY-y1}px))`,opacity:1,offset:.5});
+frames.push({transform:`translate(calc(-50% + ${x2-x1}px),calc(-50% + ${y2-y1}px))`,opacity:0});
+const animation=el.animate(frames,{duration:420,easing:'cubic-bezier(.2,.7,.3,1)'});flights.push(animation);animation.onfinish=()=>el.remove();
+}
+$('prev').onclick=()=>go(state.step-1);$('next').onclick=()=>go(state.step+1);$('reset').onclick=()=>{state=defaults();save();render();};$('custom').onclick=()=>{state.base=state.base==='default'?'custom':'default';state.step=Math.max(7,state.step);save();render(true,[state.base==='custom'?'src-custom':'src-base','system','替换基础块']);};$('sample').onclick=()=>{state.sample=state.sample==='compact'?'verbose':'compact';save();render();};$('theme').onclick=()=>{state.theme=state.theme==='light'?'dark':'light';save();render();};$('motion').onclick=()=>{state.motion=state.motion==='full'?'reduced':'full';save();render();};$('phases').onclick=e=>{const b=e.target.closest('[data-step]');if(b)go(Number(b.dataset.step));};$('fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{$('fullscreen').textContent='请用浏览器全屏';}};
+document.addEventListener('keydown',e=>{if(e.altKey||e.ctrlKey||e.metaKey)return;if(['ArrowLeft','ArrowRight','r','R'].includes(e.key)){e.preventDefault();if(e.key.toLowerCase()==='r')$('reset').click();else go(state.step+(e.key==='ArrowRight'?1:-1));}});addEventListener('hashchange',()=>{state=parseHash();save();render();});addEventListener('resize',()=>render());media.addEventListener('change',e=>{state.motion=e.matches?'reduced':'full';save();render();});state=parseHash();save();render();
+</script>
+</body>
+</html>

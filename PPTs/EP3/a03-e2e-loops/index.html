@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A03 · 一次 e2e 的人机职责迁移</title>
+<style>
+:root{--bg:#f6f4ef;--paper:#fffefa;--ink:#263c40;--muted:#687777;--line:#d9dfd9;--blue:#087f95;--blue-soft:#e4f3f4;--amber:#aa651d;--amber-soft:#fcf0dc;--purple:#8055a5;--purple-soft:#f2eaf8;--green:#277653;--green-soft:#e8f3e9;--red:#b34b41;--red-soft:#fbeae5;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:var(--bg);font-synthesis:none}*{box-sizing:border-box}body{margin:0}button{font:inherit;font-size:22px;color:inherit;cursor:pointer;white-space:nowrap;border:1px solid var(--line);border-radius:10px;background:var(--paper);padding:9px 15px}button:hover:not(:disabled){border-color:var(--blue)}button:disabled{opacity:.35;cursor:default}button:focus-visible{outline:3px solid var(--blue);outline-offset:3px}.primary{background:var(--ink);color:white;border-color:var(--ink)}.quiet{background:transparent}.app{height:100dvh;min-height:720px;max-width:2100px;margin:auto;padding:24px 28px 16px;display:flex;flex-direction:column;gap:12px}.header{display:flex;justify-content:space-between;align-items:center}.eyebrow{font-size:15px;font-weight:750;letter-spacing:2.5px;color:var(--blue);margin-bottom:7px}.header h1{font-size:clamp(36px,3vw,55px);line-height:1.15;letter-spacing:-1.5px;margin:0}.header h1 span{font-weight:400;color:var(--muted)}.counter{text-align:right}.counter b{font-size:29px;color:var(--blue);font-weight:600}.counter small{font-size:17px;color:var(--muted);display:block;margin-top:4px}.goal{display:flex;align-items:center;gap:22px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px 18px}.goal h2{font-size:24px;line-height:1.4;margin:0;flex:1}.criteria{display:flex;gap:12px;color:var(--green);font-size:22px}.criteria span{white-space:nowrap}.caption{font-size:25px;line-height:1.35;margin:0;display:flex;gap:14px;align-items:center;min-height:34px}.caption:before{content:"";background:var(--blue);width:25px;height:3px;flex-shrink:0}.workspace{display:grid;grid-template-columns:55fr 45fr;gap:22px;flex:1;min-height:0}.side{min-width:0;display:flex;flex-direction:column;gap:10px}.side-title{font-size:23px;font-weight:650;display:flex;align-items:center;justify-content:space-between;margin:0}.side-title small{font-size:17px;color:var(--muted);font-weight:400}.agent-layout{display:grid;grid-template-columns:1fr 1fr;gap:12px;flex:1;min-height:0}.area{border:1px solid var(--line);border-radius:16px;padding:13px;background:var(--paper);min-width:0;display:flex;flex-direction:column;gap:10px}.area h3{font-size:22px;margin:0;color:var(--blue);font-weight:650}.harness{background:var(--amber-soft);border-color:#e5cba4}.harness h3{color:var(--amber)}.human{flex:1;background:#fbf9fc;border-color:#e2d8e9}.human h3{color:var(--purple)}.slots{display:flex;flex-direction:column;gap:8px}.responsibility{display:flex;align-items:center;gap:10px;padding:10px 11px;background:var(--paper);border:1px solid var(--line);border-radius:9px;font-size:22px;line-height:1.15;position:relative;z-index:2;white-space:nowrap}.responsibility b{font:15px ui-monospace,monospace;color:var(--muted);font-weight:500}.responsibility.active{border-color:var(--blue);background:var(--blue-soft)}.human .responsibility.active{border-color:var(--purple);background:var(--purple-soft)}.harness .responsibility.active{border-color:var(--amber);background:#fff8e9}.annotation{font-size:22px;line-height:1.4;color:var(--muted);margin:auto 0 0;min-height:32px}.annotation strong{color:var(--ink);font-weight:600}.human .slots{display:grid;grid-template-columns:1fr 1fr}.human .annotation{color:var(--purple)}.sources{font-size:22px;line-height:1.6;color:var(--blue);border-top:1px solid var(--line);padding-top:8px;margin-top:auto}.sources span{color:var(--muted);display:block}.story{border-left:3px solid var(--blue);background:var(--blue-soft);padding:11px 15px;border-radius:0 10px 10px 0;min-height:53px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:22px;line-height:1.35}.story.bad{border-color:var(--red);background:var(--red-soft)}.story.good{border-color:var(--green);background:var(--green-soft)}.story .action-buttons{display:flex;gap:8px;flex-shrink:0}.story button{padding:7px 12px;font-size:22px}.evidence{display:grid;grid-template-columns:1fr 1fr 1fr 1.1fr;gap:10px;min-height:53px}.proof{border-top:2px solid var(--line);padding:8px 12px 0;font-size:22px;color:var(--muted);display:flex;gap:10px;align-items:center}.proof.on{border-color:var(--green);color:var(--green)}.proof.final{border-color:var(--purple);color:var(--purple);background:var(--purple-soft);border-radius:8px;padding:9px 12px}.phase-nav{display:grid;grid-template-columns:.65fr 1fr 1.5fr 1.5fr 1.5fr .9fr .8fr;border-top:1px solid var(--line);padding-top:8px;gap:5px}.phase{padding:9px 4px;border:0;background:transparent;font-size:18px;color:var(--muted)}.phase.current{background:var(--blue-soft);color:var(--blue);font-weight:650}.toolbar{display:flex;align-items:center;gap:8px}.spacer{flex:1}.small-button{font-size:18px;padding:10px 12px}.danger{color:var(--red);border-color:#deb4ab}.footnote{display:flex;justify-content:space-between;gap:18px;font-size:15px;color:var(--muted)}.transport{position:fixed;z-index:20;pointer-events:none;padding:9px 14px;background:var(--blue);color:white;border-radius:8px;font-size:22px}.flash{box-shadow:0 0 0 3px #087f9512}.reduced *{animation:none!important;transition:none!important}[hidden]{display:none!important}@media(min-height:950px){.app{padding:38px 48px 26px;gap:20px}.goal{padding:18px 22px}.area{padding:22px;gap:18px}.responsibility{padding:16px 13px}.slots{gap:13px}.human .slots{gap:15px}.caption{font-size:30px}.side-title{font-size:27px}.story{min-height:66px}.evidence{min-height:68px}.annotation{font-size:25px}.sources{font-size:25px}}@media(max-width:1400px){.workspace{gap:16px}.criteria{gap:10px}.goal{gap:12px}.goal h2{font-size:22px}.header h1{font-size:39px}.responsibility{padding:10px 9px;gap:7px}.area{padding:12px}.story{font-size:22px}.story button{padding:6px 9px}.human .slots{gap:8px}.annotation{font-size:22px}.phase{font-size:18px}.proof{font-size:22px;padding-left:8px;padding-right:8px}}
+/* Keep the map inside its row at presentation sizes. */
+.app{padding-top:20px;padding-bottom:12px;gap:8px}.workspace{grid-template-rows:minmax(0,1fr)}.side,.agent-layout{min-height:0}.agent-layout{grid-template-rows:minmax(0,1fr)}.evidence{min-height:45px}.phase-nav{padding-top:6px}.phase{padding-top:6px;padding-bottom:6px}.human .annotation{font-size:22px}.responsibility{padding-top:8px;padding-bottom:8px}.human{min-height:0}.area{gap:8px}.harness .annotation{font-size:22px}
+@media(min-height:950px){.app{padding:38px 48px 26px;gap:20px}.evidence{min-height:68px}.phase{padding:9px 4px}.area{gap:18px}}
+</style>
+</head>
+<body>
+<main class="app">
+<header class="header"><div><div class="eyebrow">AGENTFLOW SALON / EP3 · A03</div><h1>同一个任务，<span>职责如何迁移</span></h1></div><div class="counter"><b id="mode"></b><small id="position"></small></div></header>
+<section class="goal" aria-label="固定任务与验收"><h2>Campus Day · 修复空白姓名报名</h2><div class="criteria"><span>空白被拒</span><span>· 有效成功</span><span>· 弹窗可重开</span></div></section>
+<p class="caption" id="caption" aria-live="polite"></p>
+<section class="workspace" aria-label="人机职责分工">
+<div class="side"><h2 class="side-title">Agent / 系统 <small>候选与过程</small></h2><div class="agent-layout">
+<section class="area" id="model-area"><h3>Agent · 推理与生成</h3><div class="slots" id="model-slots"></div><p class="annotation" id="model-note"></p><div class="sources" id="sources" hidden>规范 · 源码 · 错误输出<span>无关资料 → 留在外部</span></div></section>
+<section class="area harness" id="harness-area"><h3>Harness / 工具 / 检查</h3><div class="slots" id="harness-slots"></div><p class="annotation" id="harness-note"></p></section>
+</div></div>
+<div class="side"><h2 class="side-title">人类 <small>目标 · 取舍 · 控制</small></h2><section class="area human" id="human-area"><h3 id="human-title">目标、约束与授权始终保留</h3><div class="slots" id="human-slots"></div><p class="annotation" id="human-note"></p></section></div>
+</section>
+<section class="story" id="story" aria-label="当前因果动作"><span id="story-text"></span><div class="action-buttons" id="actions"></div></section>
+<section class="evidence" aria-label="候选结果、证据与验收"><div class="proof" id="proof-diff">① diff · 未交付</div><div class="proof" id="proof-test">② 测试 · 未交付</div><div class="proof" id="proof-ui">③ UI · 未交付</div><div class="proof final" id="verdict">候选结果 → 等待证据</div></section>
+<nav class="phase-nav" id="phases" aria-label="模式与阶段跳转"></nav>
+<div class="toolbar"><button id="prev" aria-label="上一步">← 上一步</button><button id="next" class="primary" aria-label="下一步">下一步 →</button><button id="failure" class="danger small-button">异常分支 · 教学仿真</button><span class="spacer"></span><button id="reset" class="quiet small-button">重置 R</button><button id="motion" class="quiet small-button" aria-pressed="false">减少动效</button><button id="fullscreen" class="quiet small-button">全屏 ⛶</button></div>
+<footer class="footnote"><span>协作模式示意，非严格年代分期</span><span id="footnote">← → 逐步讲解 · 点击模式跳转</span></footer>
+</main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id),motionQuery=matchMedia('(prefers-reduced-motion: reduce)');
+const modes=['固定目标','ChatBox','Prompt Engineering','Context Engineering','Harness Engineering','候选交付','人类判断'];
+const phases=[['固定目标',0],['ChatBox',1],['Prompt Engineering',5],['Context Engineering',8],['Harness Engineering',10],['候选交付',15],['人类判断',18]];
+// Six nodes are created once. Rendering reparents these identities; FLIP only animates that move.
+const cards=['定义目标','提供 / 取得资料','生成修改','执行与验证','失败处理','最终判断'].map((name,i)=>{const e=document.createElement('div');e.id='responsibility-'+i;e.className='responsibility';const n=document.createElement('b');n.textContent=String(i+1).padStart(2,'0');e.append(n,document.createTextNode(name));return e;});
+const main=[
+[0,'比较工作方式，保持任务与验收不变。','人定义问题与边界，最终也由人判断。',0],
+[1,'人找到源码，粘贴给 Agent。','资料：人类 → Agent',1,'human-area','model-area','粘贴源码'],
+[1,'Agent 生成候选代码，人复制到项目。','候选代码：Agent → 人类',2,'model-area','human-area','复制修改'],
+[1,'人打开页面、运行检查。','执行器仍然是人：保存 → 运行 → 检查',3],
+[1,'人把错误再次贴回，Agent 才能继续。','反馈：人类 → Agent；搬运再次发生。',4,'human-area','model-area','粘贴错误'],
+[2,'把目标、修改范围与验收写清楚。','目标：拒绝空白；范围：报名源码；验收：三项都满足。',0],
+[2,'更清楚的要求，产生更明确的候选。','源码仍需粘贴，修改仍需复制。',2,'model-area','human-area','复制候选'],
+[2,'说明变好了，执行仍由人完成。','Prompt 本身没有创建文件权限、执行器或测试循环。',3],
+[3,'先选择这一轮真正需要的资料。','选入：项目规范、报名源码、错误输出。',1],
+[3,'选定工作流的读取工具，把材料送入上下文。','工具提供读取能力；Context 关注材料的选择与组织。',1,'harness-area','model-area','选定材料'],
+[4,'职责进入运行系统，人保留关键控制。','模型提出修改；工具应用修改；人保留范围与授权。',2],
+[4,'Harness 执行允许范围内的修改。','执行 → 报名源码；受保护的验收基准保持不变。',3,'model-area','harness-area','执行请求'],
+[4,'检查发现：关闭后无法重新打开弹窗。','检查 → 失败反馈；不能把「已修改」当作成功。',3],
+[4,'Agent 根据反馈修复；Harness 再执行。','失败反馈 → 修复请求 → 再执行',4,'harness-area','model-area','失败反馈'],
+[4,'重新检查：三条验收条件均有证据。','空白被拒 ✓　有效成功 ✓　弹窗可重开 ✓',3],
+[5,'先交付小范围 diff。','候选修改：报名校验与弹窗状态复位。',2],
+[5,'附上测试结果，证明关键行为。','测试证据：空白 / 有效姓名 / 重开弹窗均通过。',3],
+[5,'补上界面复验，再交给人。','UI 复验：提交 → 关闭 → 重新打开。',3],
+[6,'候选交付完成，等待人类判断。','final 结束了回答；验收决定是否结束任务。',5],
+[6,'人类接受：这一轮 e2e 完成。','已接受 · 三条验收成立，修改范围可接受。',5],
+[0,'新约束回到目标澄清，外层 Loop 继续。','新增约束：全角空格也应拒绝；先澄清，再开始下一轮。',0]
+];
+const fail=[
+['测试失败：弹窗关闭后无法再次打开。','教学仿真 · 已有失败反馈，需要定位原因。',3],
+['Agent 提议修改受保护的验收基准。','拟改 tests/acceptance.json，跳过「弹窗重开」检查。',2],
+['Harness 拒绝越界动作，原文件保持不变。','拒绝原因：验收基准只读；允许修改 src/registration.ts。',3],
+['Agent 已收到拒绝原因与失败反馈。','选择允许范围内修复，或在预算耗尽时上报。',4],
+['回到允许范围，修复弹窗状态复位。','修复请求 → src/registration.ts；验收基准不变。',2],
+['Harness 执行源码修改，再运行原有检查。','执行 → 检查；修复动作本身不等于成功。',3],
+['原有检查通过，准备提交证据。','空白被拒 ✓　有效成功 ✓　弹窗可重开 ✓',3],
+['预算耗尽：停止尝试，向人类上报。','已做：校验修改；未解：弹窗重开；需判断：范围与条件。',4],
+['人类澄清条件，返回任务边界。','明确：重开后表单应清空；保留原验收基准。',0],
+['人类授权一项具体的源码动作。','仅允许重置 src/registration.ts 的弹窗状态；不改验收基准。',0],
+['Harness 按授权执行，并重新运行检查。','授权 → 执行 → 检查；授权不能直接变成成功。',3],
+['检查通过，下一步交付证据供人验收。','源码动作已验证；最终接受仍在人类侧。',3],
+['人类终止任务，系统停止执行。','已停止 · 保留已做事项与未解决问题。',5]
+];
+let state={step:0,branch:'main',decision:'none',human:'none',reduced:motionQuery.matches},animations=[];
+function cancelMotion(){animations.forEach(a=>a.cancel());animations=[];document.querySelectorAll('.transport').forEach(n=>n.remove());}
+function parse(){const p=new URLSearchParams(location.hash.slice(1)),raw=p.get('step')||'0',s=Number(raw),b=p.get('branch')||'main',d=p.get('decision')||'none',h=p.get('human')||'none',m=p.get('motion');let valid=/^\d+$/.test(raw)&&['main','fail'].includes(b)&&['none','accept','new','repair','budget'].includes(d)&&['none','clarify','authorize','stop'].includes(h)&&(m===null||['full','reduced'].includes(m));if(b==='main')valid=valid&&s<main.length&&((s<=18&&d==='none'&&h==='none')||(s===19&&d==='accept'&&h==='none')||(s===20&&d==='new'&&h==='none'));else valid=valid&&s<fail.length&&((s<=3&&d==='none'&&h==='none')||(s>=4&&s<=6&&d==='repair'&&h==='none')||(s===7&&d==='budget'&&h==='none')||(s===8&&d==='budget'&&h==='clarify')||(s>=9&&s<=11&&d==='budget'&&h==='authorize')||(s===12&&d==='budget'&&h==='stop'));return valid?{step:s,branch:b,decision:d,human:h,reduced:m?m==='reduced':motionQuery.matches}:{step:0,branch:'main',decision:'none',human:'none',reduced:motionQuery.matches};}
+function store(){window.history.replaceState(null,'','#'+new URLSearchParams({step:state.step,branch:state.branch,decision:state.decision,human:state.human,motion:state.reduced?'reduced':'full'}));}
+function go(step,branch='main',decision='none',human='none'){cancelMotion();state={...state,step,branch,decision,human};store();render(true);}
+function scene(){return state.branch==='main'?main[state.step]:[state.step===8?0:4,...fail[state.step]];}
+function distribution(g){if(g===0)return ['human','human','model','human','human','human'];if(g<3)return ['human','human','model','human','human','human'];if(g===3)return ['human','harness','model','human','human','human'];return ['human','harness','model','harness','model','human'];}
+function button(text,action){const b=document.createElement('button');b.textContent=text;b.onclick=action;$('actions').append(b);}
+function render(animate=false){
+ cancelMotion();const s=scene(),f=state.branch==='fail',n=state.step,g=s[0];document.documentElement.classList.toggle('reduced',state.reduced);
+ $('mode').textContent=f?(n===8?'目标澄清 · 教学仿真':'异常分支 · 教学仿真'):modes[g];$('position').textContent='手动逐步 · '+(f?'失败之后':n===19?'已接受':n===20?'外层 Loop':'当前暂停');$('caption').textContent=s[1];$('story-text').textContent=s[2];$('story').className='story'+(f&&n<=3?' bad':(!f&&[14,19].includes(n)||f&&[6,11].includes(n))?' good':'');
+ const old=cards.map(c=>c.isConnected?c.getBoundingClientRect():null),places=distribution(g);
+ cards.forEach((c,i)=>{$(places[i]+'-slots').append(c);c.classList.toggle('active',i===s[3]);});
+ if(animate&&!state.reduced)cards.forEach((c,i)=>{const a=old[i],b=c.getBoundingClientRect();if(a&&(Math.abs(a.x-b.x)>1||Math.abs(a.y-b.y)>1)){const anim=c.animate([{transform:`translate(${a.x-b.x}px,${a.y-b.y}px)`},{transform:'translate(0,0)'}],{duration:380,easing:'cubic-bezier(.2,.7,.3,1)'});animations.push(anim);}});
+ $('model-note').textContent=g<3?'输出候选代码；尚未执行。':g===3?'基于选定材料，生成修改。':'读取反馈 → 定位 → 修复';
+ $('harness-note').innerHTML=g<3?'工具执行尚未闭环':g===3?'本例工具工作流<br>读取 → 返回材料':'<strong>执行 → 检查 → 反馈<br>↑ 修复后重试</strong>';
+ $('human-note').textContent=g<2?'找资料 · 复制修改 · 运行 · 回传错误':g===2?'目标 / 范围 / 验收；仍需搬运与执行。':g===3?'选择可靠来源 · 检查缺口 · 最终判断':'目标与约束 · 必要授权 · 最终接受 / 拒绝';
+ $('sources').hidden=g!==3;$('human-title').textContent=n===20&&!f?'澄清新约束，再进入下一轮':'目标、约束与授权始终保留';
+ const proof=!f&&n>=15&&n<=19?n-14:0;['diff','test','ui'].forEach((k,i)=>{const e=$('proof-'+k);e.classList.toggle('on',proof>i);e.textContent=[['① diff · 未交付','① diff · 小范围修改'],['② 测试 · 未交付','② 测试 · 三项通过'],['③ UI · 未交付','③ UI · 已复验']][i][proof>i?1:0];});
+ $('verdict').textContent=f?(n===12?'已终止 · 留存报告':n===8?'回到目标澄清':'候选结果 → 等待证据'):n===19?'已接受 ✓':n===20?'外层 Loop → 澄清':n>=17?'证据齐备 → 待验收':'候选结果 → 等待证据';
+ $('actions').replaceChildren();
+ if(!f&&n===18){button('接受',()=>go(19,'main','accept'));button('提出新约束',()=>go(20,'main','new'));}
+ if(f&&n===3){button('允许范围内修复',()=>go(4,'fail','repair'));button('预算耗尽 · 上报',()=>go(7,'fail','budget'));}
+ if(f&&n===7){button('澄清条件',()=>go(8,'fail','budget','clarify'));button('授权源码动作',()=>go(9,'fail','budget','authorize'));button('终止',()=>go(12,'fail','budget','stop'));}
+ $('failure').textContent=f?'返回主线':'异常分支 · 教学仿真';$('failure').hidden=!f&&g!==4;
+ $('prev').disabled=!f&&n===0;$('next').disabled=(!f&&n>=18)||(f&&[3,7,8,12].includes(n));$('next').textContent=f&&[6,11].includes(n)?'交付证据 →':'下一步 →';
+ $('motion').textContent=state.reduced?'减少动效 ✓':'减少动效';$('motion').setAttribute('aria-pressed',String(state.reduced));
+ $('footnote').textContent=f?'教学仿真 · 策略拒绝示意，不是安全沙箱证明':'← → 逐步讲解 · 点击模式跳转';
+ $('phases').replaceChildren();phases.forEach(([label,target],i)=>{const b=document.createElement('button');b.className='phase'+(i===g?' current':'');b.textContent=label;if(i===g)b.setAttribute('aria-current','step');b.onclick=()=>go(target);$('phases').append(b);});
+ if(animate&&!state.reduced&&s[4])transport(s[4],s[5],s[6]);
+}
+function transport(from,to,label){const a=$(from).getBoundingClientRect(),b=$(to).getBoundingClientRect(),e=document.createElement('div');e.className='transport';e.textContent=label;document.body.append(e);e.style.left=(a.x+a.width/2)+'px';e.style.top=(a.y+a.height/2)+'px';const animation=e.animate([{transform:'translate(-50%,-50%)',opacity:0},{opacity:1,offset:.18},{transform:`translate(calc(-50% + ${b.x+b.width/2-a.x-a.width/2}px),calc(-50% + ${b.y+b.height/2-a.y-a.height/2}px))`,opacity:0}],{duration:420,easing:'ease-in-out'});animations.push(animation);animation.onfinish=()=>e.remove();}
+function next(){if($('next').disabled)return;if(state.branch==='main')go(state.step+1);else if([6,11].includes(state.step))go(15);else go(state.step+1,'fail',state.decision,state.human);}
+function prev(){const n=state.step;if(state.branch==='main'){if(n===20||n===19)go(18);else if(n>0)go(n-1);}else if(n===0)go(11);else if([4,7].includes(n))go(3,'fail');else if([8,9,12].includes(n))go(7,'fail','budget');else go(n-1,'fail',state.decision,state.human);}
+$('next').onclick=next;$('prev').onclick=prev;$('failure').onclick=()=>state.branch==='fail'?go(10):go(0,'fail');
+$('reset').onclick=()=>{state.reduced=motionQuery.matches;go(0);};$('motion').onclick=()=>{state.reduced=!state.reduced;store();render();};
+$('fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{$('fullscreen').textContent='请用浏览器全屏';}};
+addEventListener('keydown',e=>{if(e.altKey||e.ctrlKey||e.metaKey||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;if(['ArrowLeft','ArrowRight','r','R'].includes(e.key)){e.preventDefault();if(e.key==='ArrowLeft')prev();else if(e.key==='ArrowRight')next();else $('reset').click();}});
+addEventListener('hashchange',()=>{cancelMotion();state=parse();store();render();});addEventListener('resize',cancelMotion);motionQuery.addEventListener('change',e=>{state.reduced=e.matches;store();render();});state=parse();store();render();
+</script>
+</body>
+</html>
