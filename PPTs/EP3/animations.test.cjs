@@ -13,16 +13,44 @@ function load(folder) {
   vm.runInContext(source[1], ctx);
   return expr => JSON.parse(vm.runInContext(`JSON.stringify(${expr})`, ctx));
 }
-test('A01: returning evidence is not visible in a frozen input until the next call', () => {
+test('A01: each advance appends one chunk and evidence arrives only after its tool', () => {
   const run = load('a01-react-loop');
-  assert.equal(run('sceneFor(parseState("#step=6")).inputCount'), 0);
-  assert.equal(run('sceneFor(parseState("#step=6")).pending'), 1);
-  assert.equal(run('sceneFor(parseState("#step=7")).inputCount'), 1);
-  assert.equal(run('sceneFor(parseState("#step=10")).testState'), 'idle');
-  assert.equal(run('sceneFor(parseState("#step=19")).call'), 4);
-  assert.equal(run('sceneFor(parseState("#step=19")).verdict'), 'candidate');
-  assert.equal(run('sceneFor(parseState("#branch=fail&step=3")).verdict'), 'none');
-  assert.equal(run('sceneFor(parseState("#branch=fail&step=2")).testState'), 'fail');
+  assert.deepEqual(run('sceneFor(defaults()).chunks.map(c => c.kind)'), ['system prompt','tools','user prompt']);
+  const expected = ['thinking','tool','observation','thinking','tool','observation','thinking','tool','observation','thinking','tool','observation','thinking','final'];
+  expected.forEach((kind, i) => {
+    const scene = run(`sceneFor(parseState('#step=${i+1}'))`);
+    assert.equal(scene.chunks.length, i+4);
+    assert.equal(scene.current.kind, kind);
+  });
+  assert.equal(run('sceneFor(parseState("#step=2")).tool.result'), null);
+  assert.match(run('sceneFor(parseState("#step=3")).tool.result'), /预期 5，实际 -1/);
+  assert.equal(run('sceneFor(parseState("#step=5")).tool.result'), null);
+  assert.match(run('sceneFor(parseState("#step=6")).tool.result'), /a - b/);
+  assert.equal(run('sceneFor(parseState("#step=8")).tool.result'), null);
+  assert.equal(run('sceneFor(parseState("#step=9")).tool.result'), '修改已应用。');
+  assert.doesNotMatch(run('JSON.stringify(sceneFor(parseState("#step=11")))'), /1 passed/);
+  assert.match(run('sceneFor(parseState("#step=12")).tool.result'), /1 passed/);
+  assert.equal(run('sceneFor(parseState("#step=14")).phase'), 'final');
+  assert.equal(run('nextState(parseState("#step=14"))'), null);
+});
+test('A01: legacy main links work, obsolete failure and out-of-range steps reset', () => {
+  const run = load('a01-react-loop');
+  assert.equal(run('parseState("#step=3&branch=main&motion=full").step'), 3);
+  for (const hash of ['#branch=fail&step=3','#step=15','#step=19','#step=Infinity','#unknown=yes']) {
+    assert.equal(run(`parseState(${JSON.stringify(hash)}).step`), 0);
+  }
+  assert.equal(run('prevState(defaults())'), null);
+});
+test('A01: rendered tool output keeps code operators and test status words intact', () => {
+  const html=fs.readFileSync(path.join(__dirname,'a01-react-loop/index.html'),'utf8');
+  const ctx=vm.createContext({URLSearchParams});
+  for(const id of ['scene-model','scene-art'])vm.runInContext(html.match(new RegExp(`<script id="${id}">([\\s\\S]*?)<\\/script>`))[1],ctx);
+  const read=vm.runInContext('drawScene(sceneFor(parseState("#step=6")))',ctx);
+  const pass=vm.runInContext('drawScene(sceneFor(parseState("#step=12")))',ctx);
+  const toolPanel=svg=>svg.slice(svg.indexOf('id="tool-panel"'));
+  assert.match(toolPanel(read), /=&gt;/);
+  assert.doesNotMatch(toolPanel(read), /<\/text><text[^>]*>&gt;/);
+  assert.match(toolPanel(pass), /passed<\/text>/);
 });
 test('A02: custom base preserves supplements, skill text arrives only after read, theme does not affect input', () => {
   const run = load('a02-pi-context');
@@ -102,29 +130,67 @@ function player(folder, hash='') {
     key(key,closest=()=>null){let prevented=false;listeners.get('document:keydown')({key,target:{closest},preventDefault(){prevented=true;}});return prevented;},
   };
 }
-test('player: read result appears only at landing; another advance completes rather than skips the step',()=>{
+test('player: observation lands after return animation; another advance finishes without skipping',()=>{
   const p=player('a01-react-loop','#step=5');
   p.run('forward()');
   assert.equal(p.run('state.step'),6);
-  assert.doesNotMatch(p.markup(),/下轮新增/);
-  p.tick(1299);assert.doesNotMatch(p.markup(),/下轮新增/);
-  p.tick(1);assert.match(p.markup(),/下轮新增/);
+  assert.doesNotMatch(p.markup(),/id="chunk-8"/);
+  p.tick(649);assert.doesNotMatch(p.markup(),/id="chunk-8"/);
+  p.tick(1);assert.match(p.markup(),/id="chunk-8"/);
   assert.equal(p.run('!!playing'),true);
   p.run('forward()');assert.equal(p.run('state.step'),6);
   assert.equal(p.run('!!playing'),false);
   p.tick(3000);assert.equal(p.run('state.step'),6);
-  p.run('forward()');p.tick(1800);assert.equal(p.run('state.step'),7);
-  assert.match(p.markup(),/Call 2/);
+  p.run('forward()');p.tick(1000);assert.equal(p.run('state.step'),7);
+  assert.match(p.markup(),/id="chunk-9"/);
 });
 test('player: reset cancels pending commits, replay repeats the same step, reduced motion settles immediately',()=>{
   const p=player('a01-react-loop','#step=5');
   p.run('forward()');p.tick(700);p.run('reset()');p.tick(4000);
-  assert.equal(p.run('state.step'),0);assert.doesNotMatch(p.markup(),/下轮新增/);
+  assert.equal(p.run('state.step'),0);assert.doesNotMatch(p.markup(),/id="chunk-8"/);
   p.run('navigate(parseState("#step=6"))');p.run('replay()');
-  assert.doesNotMatch(p.markup(),/下轮新增/);p.tick(1800);
-  assert.equal(p.run('state.step'),6);assert.match(p.markup(),/下轮新增/);
+  assert.doesNotMatch(p.markup(),/id="chunk-8"/);p.tick(1000);
+  assert.equal(p.run('state.step'),6);assert.match(p.markup(),/id="chunk-8"/);
   p.run('navigate(parseState("#step=5&motion=reduced"))');p.run('forward()');
-  assert.equal(p.run('!!playing'),false);assert.match(p.markup(),/下轮新增/);
+  assert.equal(p.run('!!playing'),false);assert.match(p.markup(),/id="chunk-8"/);
+});
+test('A01: scrolling preserves history, advancing follows latest, and backward cancels playback',()=>{
+  const p=player('a01-react-loop','#step=12');
+  const bottom=p.run('scrollOffset');
+  assert.ok(bottom>0);
+  p.run('scrollContext(-10000)');assert.equal(p.run('scrollOffset'),0);
+  assert.match(p.markup(),/id="chunk-0"/);
+  assert.match(p.markup(),/id="chunk-14"/);
+  p.run('forward()');p.tick(1000);assert.ok(p.run('scrollOffset')>bottom);
+  p.run('forward()');p.tick(200);p.run('backward()');p.tick(2000);
+  assert.equal(p.run('state.step'),13);
+  assert.doesNotMatch(p.markup(),/id="chunk-16"/);
+  p.event('resize');assert.equal(p.run('!!playing'),false);
+});
+test('A01: keyboard navigation, replay and reset work without visible transport buttons',()=>{
+  const p=player('a01-react-loop','#step=13');
+  p.key('ArrowRight');
+  assert.equal(p.run('!!playing'),true);
+  p.key(' ');
+  assert.equal(p.run('state.step'),14);
+  assert.equal(p.run('!!playing'),false);
+  p.key('ArrowRight');assert.equal(p.run('state.step'),14);
+  p.key('ArrowLeft');assert.equal(p.run('state.step'),13);
+  p.key('p');assert.equal(p.run('!!playing'),true);
+  p.tick(1000);assert.equal(p.run('state.step'),13);
+  p.key('r');assert.equal(p.run('state.step'),0);
+});
+test('A01: hash navigation and stage jumps cancel old timers and restore the selected history',()=>{
+  const p=player('a01-react-loop','#step=11');
+  p.run('forward()');p.tick(300);
+  p.run('location.hash="#step=3&motion=reduced"');p.event('hashchange');p.tick(2000);
+  assert.equal(p.run('state.step'),3);
+  assert.match(p.markup(),/预期 5/);
+  assert.doesNotMatch(p.markup(),/1 passed/);
+  p.run('jump(10)');
+  assert.equal(p.run('state.step'),10);
+  assert.match(p.markup(),/修改已应用/);
+  assert.doesNotMatch(p.markup(),/1 passed/);
 });
 test('player: A02 base replacement preserves later messages and resize settles the pending scene',()=>{
   const p=player('a02-pi-context','#step=13');
