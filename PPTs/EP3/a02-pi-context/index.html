@@ -1,95 +1,545 @@
 <!doctype html>
 <html lang="zh-CN">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>A02 · Pi 上下文装配台</title>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pi · 这一轮，信息从哪里来</title>
 <style>
-:root{--bg:#f6f4ef;--paper:#fffefa;--ink:#263c40;--muted:#687777;--line:#d9dfd9;--blue:#087f95;--blue-soft:#e4f3f4;--amber:#aa651d;--amber-soft:#fcf0dc;--purple:#8055a5;--purple-soft:#f2eaf8;--green:#277653;--green-soft:#e8f3e9;--red:#b34b41;--red-soft:#fbeae5;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:var(--bg);font-synthesis:none}*{box-sizing:border-box}body{margin:0}button{font:inherit;font-size:22px;color:inherit;cursor:pointer;border:1px solid var(--line);border-radius:10px;background:var(--paper);padding:9px 14px;white-space:nowrap}button:hover:not(:disabled){border-color:var(--blue)}button:focus-visible{outline:3px solid var(--blue);outline-offset:3px}button:disabled{opacity:.35;cursor:default}.app{height:100dvh;min-height:720px;max-width:2100px;margin:auto;padding:24px 28px 16px;display:flex;flex-direction:column;gap:12px}.header{display:flex;justify-content:space-between;align-items:center;gap:20px}.eyebrow{font-size:15px;font-weight:750;letter-spacing:2.5px;color:var(--blue);margin-bottom:8px}h1{font-size:clamp(36px,3vw,55px);letter-spacing:-1.5px;line-height:1.15;margin:0;font-weight:700}h1 span{font-weight:400;color:var(--muted)}.counter{text-align:right;white-space:nowrap}.counter b{font-size:32px;font-weight:600;color:var(--blue)}.counter small{display:block;font-size:18px;color:var(--muted);margin-top:4px}.caption{font-size:26px;line-height:1.3;min-height:34px;margin:0;display:flex;align-items:center;gap:14px}.caption:before{content:"";width:26px;height:3px;flex-shrink:0;background:var(--blue)}.stage{flex:1;min-height:0;display:grid;grid-template-columns:26fr 28fr 46fr;grid-template-rows:minmax(0,1fr);gap:24px;position:relative}.col{display:flex;flex-direction:column;min-width:0;min-height:0;gap:9px}.col-title{font-size:22px;font-weight:600;margin:0;line-height:28px}.sources{flex:1;display:flex;flex-direction:column;justify-content:space-between;gap:5px}.source{font-size:22px;line-height:1.25;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);position:relative}.source.active{border-color:var(--blue);background:var(--blue-soft)}.source small{font-size:16px;color:var(--muted);margin-left:6px}.box{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:12px 16px;min-width:0;position:relative}.box.active{border-color:var(--blue);box-shadow:0 0 0 3px #087f9512}.assembler{flex:1;display:flex;flex-direction:column;justify-content:center;background:var(--amber-soft);border-color:#ead4b3;padding:22px}.assembler .kicker{color:var(--amber);font-size:18px;letter-spacing:1px;margin-bottom:10px}.assembler h2{font-size:32px;line-height:1.25;margin:0 0 16px;font-weight:650}.assembler p{font-size:22px;line-height:1.5;margin:0}.action{border-top:1px solid #e1cba9;padding-top:14px;margin-top:20px;color:var(--amber);font-size:22px;line-height:1.4}.sample-bars{display:flex;gap:5px;margin-top:16px;height:9px}.sample-bars i{width:20%;background:var(--amber);border-radius:3px;opacity:.28}.sample-bars i.on{opacity:.8}.conflict{display:inline-block;background:var(--red-soft);color:var(--red);padding:3px 8px;border-radius:5px;font-size:18px;margin-top:12px}.request{gap:8px}.type{font:18px ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--blue);margin-bottom:7px}.system{min-height:124px}.body{font-size:22px;line-height:1.3}.base{color:var(--ink)}.base.custom{color:var(--purple)}.supplements{font-size:22px;line-height:1.35;color:var(--muted);margin-top:4px}.tools{display:flex;align-items:center;gap:20px;min-height:58px}.tools .type{margin:0}.tools .body{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}.messages{flex:1;min-height:116px}.messages .type{margin-bottom:5px}.message{font-size:22px;line-height:1.32;white-space:nowrap}.message .role{color:var(--muted)}.message.skill{color:var(--purple)}.message.summary{color:var(--green)}.empty{font-size:22px;color:var(--muted)}.local{display:flex;align-items:center;gap:16px;border-top:1px solid var(--line);padding-top:10px;min-height:49px;font-size:22px}.local-label{color:var(--muted)}.local-preview{padding:5px 16px;border-radius:8px;background:#ebe8de;min-width:190px;line-height:29px}.local-preview.dark{background:#263c40;color:#fffefa}.local button{padding:6px 12px;font-size:18px}.local .hint{margin-left:auto;font-size:18px;color:var(--muted)}.phase-nav{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;border-top:1px solid var(--line);padding-top:8px}.phase{border:0;background:transparent;color:var(--muted);padding:5px 2px;font-size:18px;display:flex;flex-direction:row;justify-content:center;align-items:center;gap:9px}.phase .num{font:15px ui-monospace,monospace;opacity:.7}.phase.current{color:var(--blue);background:var(--blue-soft);font-weight:650}.toolbar{display:flex;align-items:center;gap:8px}.primary{background:var(--ink);color:white;border-color:var(--ink)}.quiet{background:transparent}.small-button{font-size:18px;padding:10px 12px}.spacer{flex:1}.selected{color:var(--purple);border-color:#c7afd9;background:var(--purple-soft)}.footnote{display:flex;justify-content:space-between;gap:16px;color:var(--muted);font-size:15px;line-height:1.3}.route{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:2}.route path{fill:none;stroke:var(--blue);stroke-width:2;stroke-dasharray:5 6;opacity:.5}.flying{position:fixed;z-index:20;pointer-events:none;background:var(--blue);color:#fff;padding:10px 16px;border-radius:10px;font-size:22px;box-shadow:0 8px 24px #263c4020}.reduced *{animation:none!important;transition:none!important}@media(min-height:950px){.app{padding:38px 48px 26px;gap:22px}.source{padding:13px 16px}.stage{gap:32px}.system{min-height:158px}.tools{min-height:85px}.box{padding:20px 24px}.assembler{padding:30px}.assembler h2{font-size:38px}.assembler p{font-size:26px}.message{line-height:1.5}.caption{font-size:30px}.local{min-height:60px}.phase-nav{padding-top:14px}.phase{padding:8px 3px}}@media(max-width:1400px){.app{gap:10px}.stage{gap:18px}.assembler{padding:17px}.assembler h2{font-size:28px}.toolbar{gap:7px}.small-button{padding:10px}.source{padding:7px 11px}.system{min-height:120px}.col{gap:7px}.tools{min-height:56px}.messages{min-height:111px}.local .hint{font-size:16px}.action{margin-top:14px;padding-top:12px}}
-</style>
-</head>
+:root{color-scheme:light;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#202B33;background:#E8E7E2}
+*{box-sizing:border-box}body{margin:0;overflow:hidden;min-height:100vh;min-height:100dvh;display:grid;place-items:center}
+#stage{width:min(100vw,calc(100dvh * 16 / 9));aspect-ratio:16 / 9;line-height:0;background:#F7F6F2}
+#stage>svg{display:block;width:100%;height:100%;overflow:visible}.svg-button{cursor:pointer}.svg-button:hover>rect{stroke:#2765AB;stroke-width:3}.svg-button:focus{outline:none}.svg-button:focus-visible>rect{stroke:#2765AB;stroke-width:4}
+dialog{width:min(960px,92vw);max-height:90dvh;overflow:auto;border:2px solid #CCD3D6;border-radius:22px;padding:32px;background:#F7F6F2;color:#202B33;box-shadow:0 20px 80px #202B3326}
+dialog::backdrop{background:#202B3340}dialog h2{font-size:30px;margin:0}dialog header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:26px}
+button{font:inherit;font-size:22px;cursor:pointer;line-height:1.4;padding:10px 18px;background:white;border:2px solid #CCD3D6;border-radius:10px;color:inherit}button:hover{border-color:#2765AB}button:focus-visible,input:focus-visible{outline:3px solid #2765AB;outline-offset:3px}button:disabled{opacity:.4;cursor:default}.primary,button[aria-current]{background:#2765AB;color:#fff;border-color:#2765AB}
+.transport-controls,.settings,#phase-nav{display:flex;flex-wrap:wrap;gap:12px}.transport-controls{margin-bottom:24px}.settings{margin:24px 0}.settings label{display:flex;align-items:center;gap:9px;font-size:21px;margin-right:12px}input{width:22px;height:22px;accent-color:#2765AB}#phase-nav{border-top:1px solid #CCD3D6;border-bottom:1px solid #CCD3D6;padding:24px 0}#phase-nav button{font-size:20px}#branch-controls{margin:22px 0}.hint{font-size:18px;line-height:1.7;color:#52616B;margin:16px 0 0}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}[hidden]{display:none!important}
+@media print{body{background:white}#stage{width:100%;height:auto}dialog{display:none}}
+</style></head>
 <body>
-<main class="app">
-<header class="header"><div><div class="eyebrow">AGENTFLOW SALON / EP3 · A02</div><h1>这一轮，<span>带上需要的信息</span></h1></div><div class="counter"><b id="phase-label"></b><small id="step-count"></small></div></header>
-<p class="caption" id="caption" aria-live="polite"></p>
-<section class="stage" aria-label="Pi 上下文装配台">
-<div class="col"><h2 class="col-title">资源来源</h2><div class="sources">
-<div class="source" id="src-base">Harness 默认规则</div>
-<div class="source" id="src-append">APPEND_SYSTEM.md</div>
-<div class="source" id="src-agents">全局 / 项目 AGENTS</div>
-<div class="source" id="src-skill">skills 目录与正文</div>
-<div class="source" id="src-custom">SYSTEM.md</div>
-<div class="source" id="src-tools">工具 · 扩展</div>
-<div class="source" id="src-session">模板 · 会话历史</div>
-</div></div>
-<div class="col"><h2 class="col-title">装配 / 选择</h2><div class="box assembler" id="assembly"><div class="kicker">HARNESS · 本轮装配</div><h2 id="assembly-title"></h2><p id="assembly-body"></p><div class="action" id="assembly-action"></div><div id="sample-view"></div></div></div>
-<div class="col request" id="request"><h2 class="col-title">本次请求的逻辑结构</h2><div class="box system" id="system"><div class="type">system_prompt</div><div class="body base" id="base"></div><div class="supplements" id="supplements"></div></div><div class="box tools" id="tools"><div class="type">tools</div><div class="body" id="tool-body"></div></div><div class="box messages" id="messages"><div class="type">messages</div><div id="message-body"></div></div></div>
-<svg class="route" id="route" aria-hidden="true"><defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" style="stroke:var(--blue);stroke-dasharray:none;opacity:1"/></marker></defs><path id="flow-path" marker-end="url(#arrow)"/></svg>
-</section>
-<div class="local"><span class="local-label">本地状态 · 不发送</span><div class="local-preview" id="local-preview">主题：暖白</div><button id="theme" aria-pressed="false">切换主题</button><span class="hint">仅演示本地 UI；扩展也可改变模型输入</span></div>
-<nav class="phase-nav" id="phases" aria-label="阶段跳转"></nav>
-<div class="toolbar"><button id="prev" aria-label="上一步">← 上一步</button><button id="next" class="primary" aria-label="下一步">下一步 →</button><button id="custom" class="small-button" aria-pressed="false">基础：默认</button><button id="sample" class="small-button" aria-pressed="false">精简、相关</button><span class="spacer"></span><button id="reset" class="quiet small-button">重置 R</button><button id="motion" class="quiet small-button" aria-pressed="false">减少动效</button><button id="fullscreen" class="quiet small-button">全屏 ⛶</button></div>
-<footer class="footnote"><span>逻辑结构示意，非特定 provider 原始请求</span><span>← → 逐步讲解 · 点击阶段跳转 · 样本为教学构造</span></footer>
-</main>
-<script>
-'use strict';
-const $=id=>document.getElementById(id);
-const media=matchMedia('(prefers-reduced-motion: reduce)');
-const phases=[['来源',0],['默认基础',1],['系统补充',3],['自定义',7],['工具定义',8],['模板与历史',9],['按需读取',11],['运行与整理',14]];
-// Every index describes a complete paused scene; no state depends on a previous animation.
-const scenes=[
-{g:0,title:'来源 ≠ 消息类型',body:'文件、命令、会话，先是材料。',action:'选择之后，才进入本轮请求。',caption:'先看来源，再看它最终进入哪里。'},
-{g:1,title:'默认身份与规则',body:'由 Harness 提供基础说明。',action:'不是每次都由用户手写。',caption:'默认系统提示词，先装入基础块。',flow:['src-base','system','身份与规则']},
-{g:1,title:'工具的文字简述',body:'基础块可以介绍工具用途。',action:'文字介绍 ≠ 可调用定义。',caption:'系统提示词里的工具简述，仍然是文字。',flow:['src-base','system','工具简述']},
-{g:2,title:'追加补充说明',body:'APPEND_SYSTEM.md 补充基础规则。',action:'追加，不替换基础块。',caption:'补充说明被复制进来，源文件仍在。',flow:['src-append','system','补充说明']},
-{g:2,title:'加载项目规范',body:'示意：全局 + 当前项目的 AGENTS.md。',action:'规则是指令，不是权限屏障。',caption:'加载到的项目说明，进入系统补充。',flow:['src-agents','system','项目规范']},
-{g:2,title:'只列技能目录',body:'seat-check：余票检查规范。',action:'目录可见 ≠ 正文已读。',caption:'先知道有哪些技能，不等于读过所有技能。',flow:['src-skill','system','名称 + 描述']},
-{g:2,title:'补上工作目录',body:'cwd：/campus-day',action:'不自动装入全仓库正文。',caption:'工作目录是定位信息，不是仓库内容。',flow:['assembly','system','cwd']},
-{g:3,title:'基础块可替换',body:'SYSTEM.md 只替换默认基础。',action:'补充、项目、技能、cwd 保留。',caption:'切换基础提示词，已追加的上下文仍然保留。'},
-{g:4,title:'登记活跃工具',body:'read · edit · bash 的参数定义。',action:'schema 独立放入 tools。',caption:'活跃工具定义，进入独立的 tools 区。',flow:['src-tools','tools','工具 schema']},
-{g:5,title:'展开用户命令',body:'/fix-seats → 修复余票文案',action:'模板展开为用户请求。',caption:'提示词模板通常进入 user 消息。',flow:['src-session','messages','user 请求']},
-{g:5,title:'带上会话分支',body:'当前分支里的历史消息。',action:'不自动获得 system 级别。',caption:'历史与本次请求，在 messages 中组织。',flow:['src-session','messages','会话历史']},
-{g:6,title:'出现相关任务',body:'“按项目规范修复余票文案。”',action:'目录里的 seat-check 与本轮相关。',caption:'本轮任务相关，才准备读取对应技能。',flow:['system','assembly','匹配目录信息']},
-{g:6,title:'发出读取请求',body:'read → seat-check/SKILL.md',action:'调用已发出，正文尚未返回。',caption:'Harness 执行读取；列出名称不代表已加载正文。',flow:['assembly','src-skill','read SKILL.md']},
-{g:6,title:'正文按需进入',body:'读取到的技能正文，作为工具结果返回。',action:'只读本次需要的一个技能。',caption:'技能正文沿工具结果路径进入 messages。',flow:['src-skill','messages','SKILL.md 正文']},
-{g:7,title:'追加运行结果',body:'工具输出成为新的历史消息。',action:'本例：余票检查结果。',caption:'实际运行结果，也进入 messages。',flow:['src-tools','messages','工具结果']},
-{g:7,title:'整理较早历史',body:'旧历史可被摘要替代；近期消息保留。',action:'system 与 tools 不变。',caption:'压缩历史材料，不是改变模型权重。',flow:['messages','assembly','较早历史']},
-{g:7,title:'摘要回到消息',body:'旧历史变成摘要，近期请求与工具结果保留。',action:'这一轮，拿到需要的信息。',caption:'上下文工程，是让这一轮拿到需要的信息。',flow:['assembly','messages','旧历史摘要']}
+<main id="stage" aria-label="Pi · 这一轮，信息从哪里来" aria-busy="false"></main>
+<p id="live-status" class="sr-only" aria-live="polite"></p>
+
+<dialog id="controls" aria-labelledby="control-title">
+<header><h2 id="control-title">演示控制</h2><button id="close-controls" aria-label="关闭演示控制">关闭 Esc</button></header>
+<div class="transport-controls"><button id="prev">← 上一步</button><button id="next" class="primary">下一步 →</button><button id="replay">重播本步 P</button><button id="reset">重置 R</button></div>
+<nav id="phase-nav" aria-label="阶段跳转"></nav>
+<div id="branch-controls"><button id="failure">演示异常</button></div>
+<div id="a02-controls" class="settings" hidden><label><input type="checkbox" id="custom">自定义基础 SYSTEM.md</label><label><input type="checkbox" id="sample">冗长 / 冲突样本</label><label><input type="checkbox" id="theme">本地深色主题</label></div>
+<div class="settings"><label><input type="checkbox" id="motion">减少动效</label><button id="fullscreen">全屏</button></div>
+<p id="fullscreen-note" class="hint" role="status"></p>
+<p class="hint">← / → 或 Space 分步 · P 重播 · R 重置 · C 打开 / 收起控制<br>每步约 1.8 秒，随后停住。动画中再按前进，只完成当前动作。</p>
+<p class="hint"><a href="speaker-notes.md">讲者备注</a> · <a href="stills/">静态备份</a></p>
+</dialog>
+<noscript>请启用 JavaScript，或打开 stills 文件夹中的静态备份。</noscript>
+<script id="scene-model">'use strict';
+const KIND="a02";
+const MAIN=[
+  {
+    "g": 0,
+    "title": "来源 ≠ 消息类型",
+    "body": "文件、命令、会话，先是材料。",
+    "action": "选择之后，才进入本轮请求。",
+    "caption": "先看来源，再看它最终进入哪里。"
+  },
+  {
+    "g": 1,
+    "title": "默认身份与规则",
+    "body": "由 Harness 提供基础说明。",
+    "action": "不是每次都由用户手写。",
+    "caption": "默认系统提示词，先装入基础块。",
+    "flow": [
+      "src-base",
+      "system",
+      "身份与规则"
+    ]
+  },
+  {
+    "g": 1,
+    "title": "工具的文字简述",
+    "body": "基础块可以介绍工具用途。",
+    "action": "文字介绍 ≠ 可调用定义。",
+    "caption": "系统提示词里的工具简述，仍然是文字。",
+    "flow": [
+      "src-base",
+      "system",
+      "工具简述"
+    ]
+  },
+  {
+    "g": 2,
+    "title": "追加补充说明",
+    "body": "APPEND_SYSTEM.md 补充基础规则。",
+    "action": "追加，不替换基础块。",
+    "caption": "补充说明被复制进来，源文件仍在。",
+    "flow": [
+      "src-append",
+      "system",
+      "补充说明"
+    ]
+  },
+  {
+    "g": 2,
+    "title": "加载项目规范",
+    "body": "示意：全局 + 当前项目的 AGENTS.md。",
+    "action": "规则是指令，不是权限屏障。",
+    "caption": "加载到的项目说明，进入系统补充。",
+    "flow": [
+      "src-agents",
+      "system",
+      "项目规范"
+    ]
+  },
+  {
+    "g": 2,
+    "title": "只列技能目录",
+    "body": "seat-check：余票检查规范。",
+    "action": "目录可见 ≠ 正文已读。",
+    "caption": "先知道有哪些技能，不等于读过所有技能。",
+    "flow": [
+      "src-skill",
+      "system",
+      "名称 + 描述"
+    ]
+  },
+  {
+    "g": 2,
+    "title": "补上工作目录",
+    "body": "cwd：/campus-day",
+    "action": "不自动装入全仓库正文。",
+    "caption": "工作目录是定位信息，不是仓库内容。",
+    "flow": [
+      "assembly",
+      "system",
+      "cwd"
+    ]
+  },
+  {
+    "g": 3,
+    "title": "基础块可替换",
+    "body": "SYSTEM.md 只替换默认基础。",
+    "action": "补充、项目、技能、cwd 保留。",
+    "caption": "切换基础提示词，已追加的上下文仍然保留。"
+  },
+  {
+    "g": 4,
+    "title": "登记活跃工具",
+    "body": "read · edit · bash 的参数定义。",
+    "action": "schema 独立放入 tools。",
+    "caption": "活跃工具定义，进入独立的 tools 区。",
+    "flow": [
+      "src-tools",
+      "tools",
+      "工具 schema"
+    ]
+  },
+  {
+    "g": 5,
+    "title": "展开用户命令",
+    "body": "/fix-seats → 修复余票文案",
+    "action": "模板展开为用户请求。",
+    "caption": "提示词模板通常进入 user 消息。",
+    "flow": [
+      "src-session",
+      "messages",
+      "user 请求"
+    ]
+  },
+  {
+    "g": 5,
+    "title": "带上会话分支",
+    "body": "当前分支里的历史消息。",
+    "action": "不自动获得 system 级别。",
+    "caption": "历史与本次请求，在 messages 中组织。",
+    "flow": [
+      "src-session",
+      "messages",
+      "会话历史"
+    ]
+  },
+  {
+    "g": 6,
+    "title": "出现相关任务",
+    "body": "“按项目规范修复余票文案。”",
+    "action": "目录里的 seat-check 与本轮相关。",
+    "caption": "本轮任务相关，才准备读取对应技能。",
+    "flow": [
+      "system",
+      "assembly",
+      "匹配目录信息"
+    ]
+  },
+  {
+    "g": 6,
+    "title": "发出读取请求",
+    "body": "read → seat-check/SKILL.md",
+    "action": "调用已发出，正文尚未返回。",
+    "caption": "Harness 执行读取；列出名称不代表已加载正文。",
+    "flow": [
+      "assembly",
+      "src-skill",
+      "read SKILL.md"
+    ]
+  },
+  {
+    "g": 6,
+    "title": "正文按需进入",
+    "body": "读取到的技能正文，作为工具结果返回。",
+    "action": "只读本次需要的一个技能。",
+    "caption": "技能正文沿工具结果路径进入 messages。",
+    "flow": [
+      "src-skill",
+      "messages",
+      "SKILL.md 正文"
+    ]
+  },
+  {
+    "g": 7,
+    "title": "追加运行结果",
+    "body": "工具输出成为新的历史消息。",
+    "action": "本例：余票检查结果。",
+    "caption": "实际运行结果，也进入 messages。",
+    "flow": [
+      "src-tools",
+      "messages",
+      "工具结果"
+    ]
+  },
+  {
+    "g": 7,
+    "title": "整理较早历史",
+    "body": "旧历史可被摘要替代；近期消息保留。",
+    "action": "system 与 tools 不变。",
+    "caption": "压缩历史材料，不是改变模型权重。",
+    "flow": [
+      "messages",
+      "assembly",
+      "较早历史"
+    ]
+  },
+  {
+    "g": 7,
+    "title": "摘要回到消息",
+    "body": "旧历史变成摘要，近期请求与工具结果保留。",
+    "action": "这一轮，拿到需要的信息。",
+    "caption": "上下文工程，是让这一轮拿到需要的信息。",
+    "flow": [
+      "assembly",
+      "messages",
+      "旧历史摘要"
+    ]
+  }
 ];
-let state,flights=[];
-function defaults(){return {step:0,base:'default',sample:'compact',theme:'light',motion:media.matches?'reduced':'full'};}
-function parseHash(){const d=defaults(),p=new URLSearchParams(location.hash.slice(1));const choices={base:['default','custom'],sample:['compact','verbose'],theme:['light','dark'],motion:['full','reduced']};for(const [key,value]of p){if(!Object.hasOwn(d,key)||p.getAll(key).length!==1)return defaults();if(key==='step'){if(!/^\d+$/.test(value)||Number(value)>=scenes.length)return defaults();d.step=Number(value);}else if(!choices[key].includes(value))return defaults();else d[key]=value;}return d;}
-function save(){window.history.replaceState(null,'','#'+new URLSearchParams(state));}
-function stop(){flights.forEach(a=>a.cancel());flights=[];document.querySelectorAll('.flying').forEach(e=>e.remove());}
-function go(n){stop();state.step=Math.max(0,Math.min(scenes.length-1,n));save();render(true);}
-function line(text,cls=''){return '<div class="message '+cls+'">'+text+'</div>';}
-function render(animate=false,overrideFlow=null){stop();const n=state.step,s=scenes[n],custom=n>=7&&state.base==='custom',verbose=state.sample==='verbose';document.documentElement.classList.toggle('reduced',state.motion==='reduced');$('phase-label').textContent=phases[s.g][0];$('step-count').textContent='动作 '+(n+1)+' / '+scenes.length+' · 已暂停';$('caption').textContent=s.caption;$('assembly-title').textContent=s.title;$('assembly-body').textContent=s.body;$('assembly-action').textContent=s.action;
-$('sample-view').innerHTML=verbose?'<div class="sample-bars" aria-label="材料相对较长">'+Array(5).fill('<i class="on"></i>').join('')+'</div><span class="conflict">过期命令 · 无关日志 · 规则冲突</span>':'<div class="sample-bars" aria-label="材料相对精简"><i class="on"></i><i></i><i></i><i></i><i></i></div>';
-if(n===4){$('assembly-body').textContent=verbose?'旧框架说明、过期命令，混入本轮需求。':'只改目标文件；保持风格；运行 test:seats。';$('assembly-action').textContent=verbose?'材料变长，不代表更有用。':'不放宽测试；规则仍不是权限屏障。';}
-$('base').classList.toggle('custom',custom);$('base').textContent=n===0?'等待装配':custom?'自定义基础：项目维护助手':n>=2?'默认基础：身份 · 规则 · 工具简述':'默认基础：身份 · 规则';
-const sup=[];if(n>=3)sup.push('APPEND');if(n>=4)sup.push('全局 / 项目 AGENTS');let tail=[];if(n>=5)tail.push('技能目录：名称 / 描述');if(n>=6)tail.push('cwd');$('supplements').innerHTML=(n>=4&&verbose?'APPEND · AGENTS：<span style="color:var(--red)">新旧命令冲突</span>':sup.length?sup.join(' · '):'')+(tail.length?'<br>'+tail.join(' · '):'');
-$('tool-body').textContent=n>=8?'read · edit · bash':'待登记';$('tool-body').classList.toggle('empty',n<8);
-let msgs='';if(n>=10)msgs+=line(n>=16?'旧历史 → 摘要':'较早会话历史',n>=16?'summary':'');if(n>=9)msgs+=line('<span class="role">user</span> · 修复余票文案');if(n>=13)msgs+=line('<span class="role">tool</span> · '+(n>=14?'read SKILL.md → 正文 · 检查结果':'read SKILL.md → 正文'),'skill');else if(n===12)msgs+=line('<span class="role">assistant</span> · read SKILL.md');$('message-body').innerHTML=msgs||'<div class="empty">等待用户请求与历史</div>';
-$('custom').textContent=state.base==='custom'?'基础：SYSTEM.md':'基础：默认';$('custom').setAttribute('aria-pressed',String(state.base==='custom'));$('custom').classList.toggle('selected',state.base==='custom');$('sample').textContent=verbose?'冗长、冲突':'精简、相关';$('sample').setAttribute('aria-pressed',String(verbose));$('sample').classList.toggle('selected',verbose);
-$('local-preview').textContent=state.theme==='dark'?'主题：深色':'主题：暖白';$('local-preview').classList.toggle('dark',state.theme==='dark');$('theme').setAttribute('aria-pressed',String(state.theme==='dark'));
-$('motion').setAttribute('aria-pressed',String(state.motion==='reduced'));$('motion').textContent=state.motion==='reduced'?'减少动效 ✓':'减少动效';$('prev').disabled=n===0;$('next').disabled=n===scenes.length-1;
-$('phases').innerHTML=phases.map((p,i)=>'<button class="phase '+(i===s.g?'current':'')+'" data-step="'+p[1]+'" '+(i===s.g?'aria-current="step"':'')+'><span class="num">'+String(i).padStart(2,'0')+'</span>'+p[0]+'</button>').join('');
-const flow=overrideFlow||(n===7?[custom?'src-custom':'src-base','system',custom?'替换基础块':'默认基础块']:s.flow);document.querySelectorAll('.active').forEach(e=>e.classList.remove('active'));if(flow){$(flow[0]).classList.add('active');$(flow[1]).classList.add('active');}drawFlow(flow,animate);
+const FAIL=[];
+// Complete scene snapshots; hash values never contain executable markup.
+function defaults() {
+  return KIND === 'a02'
+    ? {step:0,base:'default',sample:'compact',theme:'light',motion:'full'}
+    : KIND === 'a03'
+      ? {step:0,branch:'main',decision:'none',human:'none',sub:0,motion:'full'}
+      : {step:0,branch:'main',motion:'full'};
 }
-function drawFlow(flow,animate){
-$('flow-path').setAttribute('d','');if(!flow)return;
-const a=$(flow[0]).getBoundingClientRect(),b=$(flow[1]).getBoundingClientRect(),r=$('route').getBoundingClientRect(),right=b.x>a.x,x1=right?a.right:a.left,y1=a.y+a.height/2,x2=right?b.left:b.right,y2=b.y+b.height/2;
-const curve=(ax,ay,bx,by)=>`M${ax-r.x} ${ay-r.y} C${(ax+bx)/2-r.x} ${ay-r.y},${(ax+bx)/2-r.x} ${by-r.y},${bx-r.x} ${by-r.y}`;
-const viaAssembly=flow[0].startsWith('src-')&&['system','tools','messages'].includes(flow[1]),m=$('assembly').getBoundingClientRect(),midY=m.y+m.height/2;
-$('flow-path').setAttribute('d',viaAssembly?curve(x1,y1,m.left,midY)+' '+curve(m.right,midY,x2,y2):curve(x1,y1,x2,y2));
-if(!animate||state.motion==='reduced')return;
-const el=document.createElement('div');el.className='flying';el.textContent=flow[2];el.style.left=x1+'px';el.style.top=y1+'px';document.body.append(el);
-const frames=[{transform:'translate(-50%,-50%)',opacity:0},{opacity:1,offset:.15}];
-if(viaAssembly)frames.push({transform:`translate(calc(-50% + ${m.x+m.width/2-x1}px),calc(-50% + ${midY-y1}px))`,opacity:1,offset:.5});
-frames.push({transform:`translate(calc(-50% + ${x2-x1}px),calc(-50% + ${y2-y1}px))`,opacity:0});
-const animation=el.animate(frames,{duration:420,easing:'cubic-bezier(.2,.7,.3,1)'});flights.push(animation);animation.onfinish=()=>el.remove();
+function parseState(hash) {
+  const s = defaults(), p = new URLSearchParams(hash.replace(/^#/,''));
+  const choices = {branch:['main','fail'],base:['default','custom'],sample:['compact','verbose'],theme:['light','dark'],motion:['full','reduced'],decision:['none','accept','new','repair','budget'],human:['none','clarify','authorize','stop']};
+  for (const [key,value] of p) {
+    if (!(key in s) || p.getAll(key).length !== 1) return defaults();
+    if (key === 'step' || key === 'sub') {
+      if (!/^\d+$/.test(value)) return defaults();
+      s[key] = Number(value);
+    } else if (choices[key].includes(value)) s[key] = value;
+    else return defaults();
+  }
+  const length = KIND === 'a01' ? (s.branch === 'fail' ? FAIL.length : MAIN.length) : KIND === 'a02' ? MAIN.length : s.branch === 'fail' ? FAIL.length : MAIN.length;
+  if (s.step >= length) return defaults();
+  if (KIND === 'a03') {
+    const n=s.step, d=s.decision, h=s.human;
+    const valid = s.branch === 'main'
+      ? (n<=18 && d==='none' && h==='none') || (n===19 && d==='accept' && h==='none') || (n===20 && d==='new' && h==='none')
+      : (n<=3 && d==='none' && h==='none') || (n>=4 && n<=6 && d==='repair' && h==='none') || (n===7 && d==='budget' && h==='none') || (n===8 && d==='budget' && h==='clarify') || (n>=9 && n<=11 && d==='budget' && h==='authorize') || (n===12 && d==='budget' && h==='stop');
+    if (!valid || ![0,1].includes(s.sub) || (s.sub && (s.branch!=='main' || n!==10))) return defaults();
+  }
+  return s;
 }
-$('prev').onclick=()=>go(state.step-1);$('next').onclick=()=>go(state.step+1);$('reset').onclick=()=>{state=defaults();save();render();};$('custom').onclick=()=>{state.base=state.base==='default'?'custom':'default';state.step=Math.max(7,state.step);save();render(true,[state.base==='custom'?'src-custom':'src-base','system','替换基础块']);};$('sample').onclick=()=>{state.sample=state.sample==='compact'?'verbose':'compact';save();render();};$('theme').onclick=()=>{state.theme=state.theme==='light'?'dark':'light';save();render();};$('motion').onclick=()=>{state.motion=state.motion==='full'?'reduced':'full';save();render();};$('phases').onclick=e=>{const b=e.target.closest('[data-step]');if(b)go(Number(b.dataset.step));};$('fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{$('fullscreen').textContent='请用浏览器全屏';}};
-document.addEventListener('keydown',e=>{if(e.altKey||e.ctrlKey||e.metaKey)return;if(['ArrowLeft','ArrowRight','r','R'].includes(e.key)){e.preventDefault();if(e.key.toLowerCase()==='r')$('reset').click();else go(state.step+(e.key==='ArrowRight'?1:-1));}});addEventListener('hashchange',()=>{state=parseHash();save();render();});addEventListener('resize',()=>render());media.addEventListener('change',e=>{state.motion=e.matches?'reduced':'full';save();render();});state=parseHash();save();render();
+function serializeState(s) { return '#'+new URLSearchParams(s).toString(); }
+function mainState(s, step) { return {...defaults(),motion:s.motion,step}; }
+function nextState(s) {
+  if (KIND !== 'a03') {
+    const length = s.branch === 'fail' ? FAIL.length : MAIN.length;
+    return s.step+1 < length ? {...s,step:s.step+1} : null;
+  }
+  if (s.branch === 'main') {
+    if (s.step>=18) return null;
+    if (s.step===9) return {...s,step:10,sub:1};
+    if (s.step===10 && s.sub) return {...s,sub:0};
+    return {...s,step:s.step+1,sub:0};
+  }
+  if ([3,7,8,12].includes(s.step)) return null;
+  if ([6,11].includes(s.step)) return mainState(s,15);
+  return {...s,step:s.step+1};
+}
+function prevState(s) {
+  if (KIND !== 'a03') return s.step>0 ? {...s,step:s.step-1} : s.branch==='fail' ? mainState(s,14) : null;
+  if (s.branch==='main') {
+    if ([19,20].includes(s.step)) return mainState(s,18);
+    if (s.step===10 && !s.sub) return {...s,sub:1};
+    return s.step>0 ? {...s,step:s.step-1,sub:0} : null;
+  }
+  if (s.step===0) return mainState(s,11);
+  if ([4,7].includes(s.step)) return {...mainState(s,3),branch:'fail'};
+  if ([8,9,12].includes(s.step)) return {...mainState(s,7),branch:'fail',decision:'budget'};
+  return {...s,step:s.step-1};
+}
+const PHASES = [['来源',0],['默认基础',1],['系统补充',3],['自定义',7],['工具定义',8],['模板与历史',9],['按需读取',11],['运行与整理',14]];
+const CAPTIONS = ['先看来源，再看去向','装入默认规则','工具介绍仍然是文字','追加补充说明','加载项目规范','先加载技能目录','目录位置，不等于仓库正文','只替换基础块','工具定义进入 tools','模板展开为用户请求','带上当前会话历史','任务相关，准备读取','发出读取请求','正文按需进入 messages','追加工具结果','整理较早的历史','摘要替代旧历史，保留近期消息'];
+function sceneFor(s) {
+  const n=s.step, raw=MAIN[n], supplements=[];
+  if(n>=3)supplements.push('APPEND');
+  if(n>=4)supplements.push('AGENTS');
+  if(n>=5)supplements.push('技能目录');
+  if(n>=6)supplements.push('cwd');
+  const messages=[];
+  if(n>=10)messages.push(n>=16?'旧历史摘要':'较早会话历史');
+  if(n>=9)messages.push('user · 修复余票文案');
+  if(n===12)messages.push('assistant · read SKILL.md');
+  if(n>=13)messages.push('tool · SKILL.md 正文');
+  if(n>=14)messages.push('tool · 余票检查结果');
+  return {kind:KIND,state:s,g:raw.g,caption:CAPTIONS[n],base:n===0?'':n>=7&&s.base==='custom'?'自定义基础':'默认基础',supplements,toolIntro:n>=2,tools:n>=8,skillBody:n>=13,summarized:n>=16,messages,flow:n===7?[s.base==='custom'?'src-custom':'src-base','system','基础块']:raw.flow||null,focus:n===15?'messages':'',verdict:'none',fail:false};
+}
 </script>
-</body>
-</html>
+<script id="scene-art">// The same SVG scene is used by the live page and offline PNG exports.
+const C={bg:'#F7F6F2',ink:'#202B33',muted:'#52616B',line:'#CCD3D6',blue:'#2765AB',blueSoft:'#EAF1FA',amber:'#99611D',amberSoft:'#F8EFDF',purple:'#754CAD',purpleSoft:'#F0EAF7',green:'#237149',greenSoft:'#E8F3EC',red:'#B43836',redSoft:'#FBEDEC',white:'#FFFFFF'};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
+const text=(x,y,value,size=34,color=C.ink,weight=500,anchor='start',extra='')=>`<text x="${x}" y="${y}" font-size="${size}" fill="${color}" font-weight="${weight}" text-anchor="${anchor}" ${extra}>${esc(value)}</text>`;
+const rect=(x,y,w,h,fill=C.white,stroke='none',r=16,extra='')=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${fill}" stroke="${stroke}" ${extra}/>`;
+const line=(x1,y1,x2,y2,color=C.line,width=2,extra='')=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${width}" ${extra}/>`;
+const pill=(x,y,w,label,color=C.blue,fill=C.blueSoft,size=28)=>rect(x,y,w,48,fill,'none',10)+text(x+w/2,y+34,label,size,color,600,'middle');
+function box(id,x,y,w,h,title,color=C.ink,active=false) {
+  return `<g id="${id}">`+rect(x,y,w,h,C.white,active?color:C.line,18,`stroke-width="${active?3:2}"`)+text(x+26,y+48,title,28,color,600)+'</g>';
+}
+function buttonSVG(x,y,w,label,action,color=C.ink,selected=false) {
+  return `<g role="button" tabindex="0" data-action="${esc(action)}" aria-label="${esc(label)}" class="svg-button" ${selected?'aria-current="step"':''}>`+rect(x,y,w,48,selected?color:C.white,selected?color:C.line,10,'stroke-width="2"')+text(x+w/2,y+33,label,24,selected?C.white:color,600,'middle')+'</g>';
+}
+function chrome(scene,title) {
+  const s=scene.state;
+  let out=rect(0,0,1920,1080,C.bg,'none',0);
+  out+=text(64,103,title,56,C.ink,700);
+  out+=text(64,169,scene.caption,34,scene.fail?C.red:C.muted,500,'start','id="scene-caption"');
+  const label=KIND==='a01'?(scene.call?'Call '+scene.call+' / 4':'ReAct Loop'):KIND==='a02'?'Pi · Context':scene.fail?'异常 · 教学仿真':PHASES[scene.g][0];
+  out+=text(1856,100,label,36,scene.fail?C.red:KIND==='a03'?C.purple:C.blue,600,'end');
+  out+=line(64,205,1856,205,C.line,2);
+  out+=line(64,958,1856,958,C.line,2);
+  if(KIND==='a03') {
+    PHASES.slice(1,5).forEach((p,i)=>{out+=buttonSVG(64+i*224,977,204,p[0],'jump:'+p[1],C.blue,scene.g===i+1);});
+  } else {
+    const names=KIND==='a01'?['任务','输入','决策','读取','回传','修改','结果','测试','回答','验收']:PHASES.map(p=>p[0]);
+    names.forEach((name,i)=>{
+      const x=64+i*(KIND==='a01'?126:153);
+      out+=`<g role="button" tabindex="0" data-action="jump:${PHASES[i][1]}" aria-label="跳到${esc(name)}" class="svg-button" ${i===scene.g?'aria-current="step"':''}>`;
+      out+=rect(x,979,KIND==='a01'?112:140,44,i===scene.g?C.blueSoft:C.bg,'none',8);
+      out+=text(x+(KIND==='a01'?56:70),1010,name,24,i===scene.g?C.blue:C.muted,i===scene.g?700:500,'middle')+'</g>';
+    });
+  }
+  out+=buttonSVG(1726,977,130,'操作 C','controls',C.ink);
+  const foot=KIND==='a03'?(scene.fail?'教学仿真 · 策略拒绝示意，非安全沙箱证明':'协作模式示意，非严格年代分期'):'逻辑结构示意，非特定 provider 原始请求';
+  out+=text(64,1056,foot,22,C.muted,400);
+  out+=text(1856,1056,'← → 分步　P 重播',22,C.muted,400,'end');
+  return out;
+}
+function wrapSVG(body,caption='') {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080" role="group" aria-label="${esc(caption)}" style="font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif"><defs><marker id="arrow-blue" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="16" markerHeight="16" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L11 6 L1 11" fill="none" stroke="${C.blue}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></marker><marker id="arrow-red" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="16" markerHeight="16" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L11 6 L1 11" fill="none" stroke="${C.red}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></marker><marker id="arrow-gray" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="16" markerHeight="16" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L11 6 L1 11" fill="none" stroke="#8A99A4" stroke-width="2.5"/></marker><marker id="arrow-purple" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="16" markerHeight="16" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L11 6 L1 11" fill="none" stroke="${C.purple}" stroke-width="2.5"/></marker></defs>${body}</svg>`;
+}
+function routeSVG(spec) {
+  if(!spec)return '';
+  const pts=spec.points, d=pts.map((p,i)=>(i?'L':'M')+p.join(' ')).join(' '),color=spec.bad?C.red:C.blue;
+  let out=`<g id="current-route" aria-label="${esc(spec.label)}"><path d="${d}" fill="none" stroke="${color}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow-${spec.bad?'red':'blue'})"/>`;
+  if(spec.labelAt) {
+    const [x,y]=spec.labelAt,w=Math.max(104,spec.label.length*28+32);
+    out+=rect(x-w/2,y-31,w,43,C.bg,'none',5)+text(x,y,spec.label,26,color,600,'middle');
+  }
+  return out+'</g>';
+}
+function packetSVG(label,bad=false) {
+  const w=Math.max(126,Math.min(440,label.length*32+48));
+  return `<g id="packet" opacity="0" pointer-events="none">`+rect(-w/2,-31,w,62,bad?C.red:C.blue,'none',12)+text(0,12,label,32,C.white,650,'middle')+'</g>';
+}
+const SOURCES=[['src-base','默认规则'],['src-append','APPEND_SYSTEM.md'],['src-agents','AGENTS.md'],['src-skill','Skills'],['src-custom','SYSTEM.md'],['src-tools','工具 / 扩展'],['src-session','模板 / 会话']];
+const sourceY=id=>322+SOURCES.findIndex(s=>s[0]===id)*78;
+function flowFor(scene) {
+  if(!scene.flow)return null;
+  const [from,to,label]=scene.flow;
+  const ty={system:380,tools:589,messages:748};
+  let points,labelAt=[848,375],short=label.replace('read SKILL.md','读取技能').replace('工具 schema','工具定义').replace('user 请求','用户请求').replace('名称 + 描述','技能目录').replace('旧历史摘要','历史摘要').replace('SKILL.md 正文','技能正文');
+  if(from.startsWith('src-')) {
+    const y=sourceY(from);
+    points=[[590,y],[648,y],[648,538],[754,538],[942,538],[986,538],[986,ty[to]],[1044,ty[to]]];
+  } else if(from==='assembly'&&to.startsWith('src-')) {
+    points=[[754,538],[648,538],[648,sourceY(to)],[590,sourceY(to)]];
+  } else if(from==='assembly') {
+    points=[[942,538],[986,538],[986,ty[to]],[1044,ty[to]]];
+  } else {
+    points=[[1044,ty[from]],[986,ty[from]],[986,538],[942,538]];
+  }
+  return {points,label:short,labelAt};
+}
+function drawScene(scene,options={}) {
+  const s=scene.state,n=s.step,body=[chrome(scene,'这一轮，信息从哪里来')];
+  body.push(text(64,265,'资源来源',36,C.ink,650),text(848,265,'装配',36,C.ink,650,'middle'),text(1044,265,'本次请求',36,C.ink,650));
+  SOURCES.forEach(([id,label],i)=>{
+    const y=292+i*78,active=scene.flow?.[0]===id||scene.flow?.[1]===id;
+    body.push(`<g id="${id}">`,rect(64,y,526,60,active?C.blueSoft:C.white,active?C.blue:C.line,12,`stroke-width="${active?3:2}"`),text(90,y+42,label,34,active?C.blue:C.ink,active?650:500),text(560,y+40,'→',30,C.muted,500,'end'),'</g>');
+  });
+  body.push(`<g id="assembly">`,rect(754,435,188,207,C.amberSoft,C.amber,24,'stroke-width="3"'),text(848,492,'Harness',36,C.amber,650,'middle'),line(790,527,906,527,C.amber),text(848,610,'选择 / 装配',28,C.amber,600,'middle'),'</g>');
+  body.push(box('system',1044,292,812,244,'system_prompt',C.blue,scene.flow?.[1]==='system'));
+  if(scene.base){
+    body.push(rect(1072,354,756,61,s.base==='custom'&&n>=7?C.purpleSoft:C.blueSoft,'none',10),text(1094,397,scene.base,34,s.base==='custom'&&n>=7?C.purple:C.blue,650));
+    body.push(text(1804,395,scene.toolIntro&&scene.base==='默认基础'?'身份 · 规则 · 工具简述':'身份 · 规则',28,C.muted,500,'end'));
+  }
+  scene.supplements.forEach((label,i)=>{body.push(pill(1072+i*190,447,176,label,label==='AGENTS'&&s.sample==='verbose'?C.red:label==='技能目录'?C.purple:C.muted,label==='AGENTS'&&s.sample==='verbose'?C.redSoft:label==='技能目录'?C.purpleSoft:C.bg,28));});
+  body.push(box('tools',1044,562,812,91,'tools',C.blue,scene.flow?.[1]==='tools'));
+  if(scene.tools)body.push(text(1828,618,'read · edit · bash',34,C.ink,600,'end'));
+  body.push(box('messages',1044,680,812,230,'messages',C.blue,scene.flow?.[1]==='messages'||scene.focus==='messages'));
+  scene.messages.forEach((label,i)=>{
+    const y=764+i*42;
+    body.push(text(1072,y,label,30,label.includes('摘要')?C.green:label.includes('SKILL')?C.purple:C.ink,label.includes('摘要')?650:500));
+  });
+  // UI-only state is physically outside the request boundary and has no flow path.
+  body.push(line(64,876,590,876),text(64,919,'本地主题 · 不发送',28,C.muted));
+  body.push(rect(368,895,222,36,s.theme==='dark'?C.ink:'#E8E4DA','none',8),text(479,921,s.theme==='dark'?'深色':'暖白',24,s.theme==='dark'?C.white:C.ink,500,'middle'));
+  if(s.sample==='verbose'){
+    body.push(rect(699,690,294,178,C.redSoft,'none',12),text(846,730,'冗长 / 冲突',28,C.red,650,'middle'),text(846,771,'旧框架 · 过期命令',24,C.red,500,'middle'),text(846,810,'混入大量无关日志',24,C.red,500,'middle'));
+    for(let i=0;i<5;i++)body.push(rect(724+i*48,834,39,9,C.red,'none',3));
+  }
+  body.push(routeSVG(options.route===undefined?flowFor(scene):options.route));
+  return wrapSVG(body.join(''),scene.caption);
+}
+</script>
+<script id="player">'use strict';
+const $=id=>document.getElementById(id);
+const reducedQuery=matchMedia('(prefers-reduced-motion: reduce)');
+let state=readLocation(),playing=null,lastTransition=null,stableRoute;
+function readLocation(){const s=parseState(location.hash);if(!new URLSearchParams(location.hash.slice(1)).has('motion')&&reducedQuery.matches)s.motion='reduced';return s;}
+function save(){window.history.replaceState(null,'',serializeState(state));}
+function updateControls(){
+  const scene=sceneFor(state);
+  $('prev').disabled=!prevState(state);$('next').disabled=!playing&&!nextState(state);
+  $('replay').disabled=!prevState(state);
+  $('motion').checked=state.motion==='reduced';
+  $('phase-nav').innerHTML=PHASES.map(([label,step],i)=>`<button type="button" data-jump="${step}" ${scene.g===i?'aria-current="step"':''}>${label}</button>`).join('');
+  $('branch-controls').hidden=KIND==='a02';
+  if(KIND!=='a02'){$('failure').textContent=state.branch==='fail'?'返回主线':KIND==='a01'?'演示测试失败':'演示异常';$('failure').disabled=state.branch!=='fail'&&(KIND==='a01'?![14,15,16].includes(state.step):scene.g!==4);}
+  $('a02-controls').hidden=KIND!=='a02';
+  if(KIND==='a02'){$('custom').checked=state.base==='custom';$('sample').checked=state.sample==='verbose';$('theme').checked=state.theme==='dark';}
+  $('live-status').textContent=scene.caption;
+  $('stage').setAttribute('aria-busy',String(!!playing));
+}
+function render(s=state,route=stableRoute){
+  $('stage').innerHTML=drawScene(sceneFor(s),route===undefined?{}:{route});
+  updateControls();
+}
+function clearPlayback(){
+  if(!playing)return;
+  playing.timers.forEach(clearTimeout);playing.animations.forEach(a=>a.cancel());playing=null;
+}
+function finishPlayback(){if(!playing)return;clearPlayback();render();}
+function navigate(target,animate=false){
+  if(!target)return;
+  const before={...state};clearPlayback();stableRoute=undefined;state=target;save();
+  if(!animate||state.motion==='reduced'){lastTransition=null;render();return;}
+  play(before,state);
+}
+function play(before,target){
+  clearPlayback();state={...target};save();
+  const from=sceneFor(before),to=sceneFor(target);
+  const moved=KIND==='a03'?to.owners.map((owner,i)=>owner!==from.owners[i]?i:-1).filter(i=>i>=0):[];
+  // Sequential playback uses one responsibility move per click.
+  const baseChanged=KIND==='a02'&&before.base!==target.base;
+  const route=moved.length?null:flowFor(baseChanged?{...to,flow:[target.base==='custom'?'src-custom':'src-base','system','基础块']}:to);
+  stableRoute=baseChanged?route:undefined;
+  playing={timers:[],animations:[]};lastTransition={from:{...before},to:{...target}};
+  render(before,route);
+  $('live-status').textContent=to.caption;
+  $('scene-caption').textContent=to.caption;
+  const svg=$('stage').querySelector('svg');
+  let actor,points;
+  if(moved.length===1){
+    const i=moved[0],a=cardPosition(from.owners[i],i),b=cardPosition(to.owners[i],i);
+    actor=$('responsibility-'+i);points=[[0,0],[b.x-a.x,b.y-a.y]];
+    actor.style.transformBox='view-box';actor.style.transformOrigin='0 0';
+    const shape=actor.querySelector('rect');
+    playing.animations.push(shape.animate([{width:a.w+'px',offset:0},{width:a.w+'px',offset:300/1300},{width:b.w+'px',offset:1}],{duration:1300,fill:'forwards',easing:'linear'}));
+    svg.append(actor);
+  } else if(route){
+    svg.insertAdjacentHTML('beforeend',packetSVG(route.label,route.bad));actor=$('packet');points=route.points;
+  }
+  const later=(fn,delay)=>playing.timers.push(setTimeout(()=>{if(playing)fn();},delay));
+  if(actor){
+    actor.setAttribute('opacity','1');
+    const pathPoints=points,distances=[0];
+    for(let i=1;i<pathPoints.length;i++)distances[i]=distances[i-1]+Math.hypot(pathPoints[i][0]-pathPoints[i-1][0],pathPoints[i][1]-pathPoints[i-1][1]);
+    const length=distances[distances.length-1]||1;
+    const transform=p=>`translate(${p[0]}px, ${p[1]}px)`;
+    const frames=[{transform:transform(pathPoints[0]),offset:0},{transform:transform(pathPoints[0]),offset:300/1300},...pathPoints.slice(1).map((p,i)=>({transform:transform(p),offset:(300+1000*distances[i+1]/length)/1300}))];
+    const animation=actor.animate(frames,{duration:1300,fill:'forwards',easing:'linear'});playing.animations.push(animation);
+  } else {
+    const id=KIND==='a01'?to.focus:KIND==='a02'?'system':`responsibility-${to.focus}`;
+    const el=$(id);
+    if(el)playing.animations.push(el.animate([{opacity:1},{opacity:.55},{opacity:1}],{duration:1000,iterations:1}));
+  }
+  later(()=>{
+    playing.animations.forEach(a=>a.cancel());playing.animations=[];
+    render(target);
+    // Landing keeps the changed content and path visible for explanation.
+    const focus=KIND==='a01'?to.focus:KIND==='a02'?(to.flow?.[1]||'messages'):moved.length?`responsibility-${moved[0]}`:`responsibility-${to.focus}`;
+    if($(focus))playing.animations.push($(focus).animate([{opacity:.65},{opacity:1}],{duration:500,fill:'forwards'}));
+  },1300);
+  later(()=>{clearPlayback();render();},1800);
+}
+function forward(){if(playing){finishPlayback();return;}navigate(nextState(state),true);}
+function backward(){navigate(prevState(state));}
+function replay(){
+  if(playing){finishPlayback();return;}
+  if(state.motion==='reduced'){render();return;}
+  const before=lastTransition&&serializeState(lastTransition.to)===serializeState(state)?lastTransition.from:prevState(state);
+  if(before)play(before,state);
+}
+function reset(){navigate({...defaults(),motion:reducedQuery.matches?'reduced':'full'});}
+function jump(step){navigate(KIND==='a02'?{...state,step}:mainState(state,step));closeControls();}
+function failure(){
+  if(KIND==='a02')return;
+  if(state.branch==='fail')navigate(mainState(state,KIND==='a01'?14:10));
+  else navigate({...mainState(state,0),branch:'fail'});
+  closeControls();
+}
+function openControls(){finishPlayback();$('controls').showModal();$('next').focus();}
+function closeControls(){if($('controls').open)$('controls').close();}
+function dispatch(action){
+  if(action==='controls')openControls();
+  else if(action==='failure')failure();
+  else if(action.startsWith('jump:'))jump(Number(action.split(':')[1]));
+  else if(action.startsWith('decide:')){finishPlayback();const choice=action.split(':')[1];navigate(decide(state,choice),!['new','clarify'].includes(choice));}
+}
+$('stage').addEventListener('click',e=>{const button=e.target.closest('[data-action]');if(button)dispatch(button.dataset.action);});
+$('stage').addEventListener('keydown',e=>{const button=e.target.closest('[data-action]');if(button&&['Enter',' '].includes(e.key)){e.preventDefault();e.stopPropagation();dispatch(button.dataset.action);}});
+$('prev').onclick=backward;$('next').onclick=forward;$('replay').onclick=replay;$('reset').onclick=reset;$('failure').onclick=failure;$('close-controls').onclick=closeControls;
+$('phase-nav').onclick=e=>{const b=e.target.closest('[data-jump]');if(b)jump(Number(b.dataset.jump));};
+$('motion').onchange=e=>navigate({...state,motion:e.target.checked?'reduced':'full'});
+$('custom').onchange=e=>{const target={...state,step:Math.max(7,state.step),base:e.target.checked?'custom':'default'};navigate(target,true);};
+$('sample').onchange=e=>navigate({...state,sample:e.target.checked?'verbose':'compact'});
+$('theme').onchange=e=>navigate({...state,theme:e.target.checked?'dark':'light'});
+$('fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{$('fullscreen-note').textContent='浏览器未允许页面全屏；可使用浏览器的全屏命令。';}};
+$('controls').addEventListener('click',e=>{if(e.target===$('controls')){const r=$('controls').getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closeControls();}});
+$('controls').addEventListener('close',()=>{$('stage').querySelector('[data-action="controls"]')?.focus();});
+document.addEventListener('keydown',e=>{
+  if(e.altKey||e.ctrlKey||e.metaKey||e.repeat)return;
+  if(e.key==='Escape'){closeControls();return;}
+  if(e.target.closest('input,select,textarea,[contenteditable="true"]'))return;
+  if(e.key===' '&&e.target.closest('button,[data-action]'))return;
+  const k=e.key.toLowerCase();
+  if(['arrowright','arrowleft',' ','p','r','c'].includes(k)){
+    e.preventDefault();
+    if(k==='arrowright'||k===' ')forward();else if(k==='arrowleft')backward();else if(k==='p')replay();else if(k==='r')reset();else $('controls').open?closeControls():openControls();
+  }
+});
+addEventListener('hashchange',()=>{clearPlayback();stableRoute=undefined;state=readLocation();lastTransition=null;save();render();});
+addEventListener('resize',finishPlayback);
+reducedQuery.addEventListener('change',e=>navigate({...state,motion:e.matches?'reduced':'full'}));
+save();render();
+</script>
+</body></html>
