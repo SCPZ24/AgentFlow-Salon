@@ -53,7 +53,7 @@ test('A01: rendered tool output keeps code operators and test status words intac
   assert.match(toolPanel(pass), /passed<\/text>/);
 });
 test('A02: custom base preserves supplements, skill text arrives only after read, theme does not affect input', () => {
-  const run = load('a02-pi-context');
+  const run = load('a02-pi-context(已废弃)');
   const a = run('sceneFor(parseState("#step=7&base=default"))');
   const b = run('sceneFor(parseState("#step=7&base=custom"))');
   assert.deepEqual(a.supplements, b.supplements);
@@ -63,26 +63,41 @@ test('A02: custom base preserves supplements, skill text arrives only after read
   assert.equal(run('sceneFor(parseState("#step=16")).summarized'), true);
   assert.deepEqual(run('sceneFor(parseState("#step=14&theme=dark")).messages'), run('sceneFor(parseState("#step=14&theme=light")).messages'));
 });
-test('A03: responsibilities migrate one at a time; direct legacy links show the complete stage', () => {
+test('A03: six eras expand AI ownership while goal and acceptance remain human', () => {
   const run = load('a03-e2e-loops');
-  assert.equal(run('nextState(parseState("#step=9")).sub'), 1);
-  assert.deepEqual(run('sceneFor(parseState("#step=10&sub=1")).owners'), ['human','harness','model','harness','human','human']);
-  assert.deepEqual(run('sceneFor(parseState("#step=10")).owners'), ['human','harness','model','harness','model','human']);
-  assert.equal(run('nextState(parseState("#step=10&sub=1")).step'), 10);
-  assert.equal(run('nextState(parseState("#step=10&sub=1")).sub'), 0);
-  assert.equal(run('prevState(parseState("#step=10")).sub'), 1);
+  const owners = Array.from({length:6}, (_,step)=>run(`sceneFor(parseState('#step=${step}')).owners`));
+  assert.deepEqual(owners.map(row=>row.filter(x=>x==='ai').length), [1,2,3,6,7,8]);
+  owners.forEach(row=>{assert.equal(row.length,10);assert.equal(row[0],'human');assert.equal(row[9],'human');});
+  assert.equal(run('nextState(parseState("#step=5"))'),null);
+  assert.equal(run('prevState(defaults())'),null);
 });
-test('A03: final requires an explicit decision and authorization still goes through verification', () => {
+test('A03: agent removes manual transport and separates writing from running tests', () => {
   const run = load('a03-e2e-loops');
-  assert.equal(run('nextState(parseState("#step=18"))'), null);
-  assert.equal(run('sceneFor(parseState("#step=18")).verdict'), 'candidate');
-  assert.equal(run('sceneFor(parseState("#step=19&decision=accept")).verdict'), 'accepted');
-  assert.equal(run('parseState("#step=19").step'), 0);
-  assert.equal(run('nextState(parseState("#branch=fail&step=3"))'), null);
-  assert.equal(run('sceneFor(parseState("#branch=fail&step=9&decision=budget&human=authorize")).verdict'), 'none');
-  assert.equal(run('nextState(parseState("#branch=fail&step=11&decision=budget&human=authorize")).step'), 15);
+  for(let step=0;step<6;step++){
+    const cards=run(`sceneFor(parseState('#step=${step}')).cards`);
+    assert.ok(Array.isArray(cards),'scene exposes the actual ordered workflow');
+    assert.equal(new Set(cards.map(c=>c.id)).size,cards.length);
+    assert.equal(cards[0].id,'goal');assert.equal(cards.at(-1).id,'accept');
+    const owner=id=>cards.find(c=>c.id===id)?.owner;
+    for(const id of ['paste','copy','adjust'])assert.equal(owner(id),step<3?'human':undefined);
+    assert.equal(owner('implement'),step<3?undefined:'ai');
+    assert.equal(owner('write-tests'),step<3?'human':'ai');
+    assert.equal(owner('unit-tests'),step<4?'human':'ai');
+    assert.equal(owner('browser'),step<5?'human':'ai');
+    assert.equal(cards.filter(c=>c.owner==='human').length,[11,10,9,4,3,2][step]);
+    if(step<3){
+      assert.ok(cards.findIndex(c=>c.id==='paste')<cards.findIndex(c=>c.id==='design'));
+      assert.ok(cards.findIndex(c=>c.id==='copy')>cards.findIndex(c=>c.id==='design'));
+    }
+  }
 });
-for (const folder of ['a01-react-loop','a02-pi-context','a03-e2e-loops']) {
+test('A03: default legacy fields normalize; obsolete branches and decisions reset', () => {
+  const run=load('a03-e2e-loops');
+  assert.deepEqual(run('parseState("#step=2&branch=main&decision=none&human=none&sub=0&motion=reduced")'),{step:2,motion:'reduced'});
+  for(const hash of ['#step=6','#step=2&branch=fail','#step=2&decision=accept','#step=2&human=stop','#step=2&sub=1','#step=2&unknown=x'])
+    assert.equal(run(`parseState(${JSON.stringify(hash)}).step`),0);
+});
+for (const folder of ['a01-react-loop','a02-pi-context(已废弃)','a03-e2e-loops']) {
   test(folder + ': malformed state falls back safely and valid state round trips', () => {
     const run = load(folder);
     for (const hash of ['#step=-1','#step=999','#step=NaN','#step=2&step=3','#motion=oops','#branch=bad']) {
@@ -193,22 +208,70 @@ test('A01: hash navigation and stage jumps cancel old timers and restore the sel
   assert.doesNotMatch(p.markup(),/1 passed/);
 });
 test('player: A02 base replacement preserves later messages and resize settles the pending scene',()=>{
-  const p=player('a02-pi-context','#step=13');
+  const p=player('a02-pi-context(已废弃)','#step=13');
   p.run('$("custom").onchange({target:{checked:true}})');
   assert.match(p.markup(),/默认基础/);p.tick(1300);
   assert.match(p.markup(),/自定义基础/);assert.match(p.markup(),/SKILL.md 正文/);
   p.event('resize');assert.equal(p.run('!!playing'),false);
   assert.match(p.markup(),/APPEND/);assert.match(p.markup(),/技能目录/);
 });
-test('player: A03 advances migration substates one at a time and preserves decision gates',()=>{
-  const p=player('a03-e2e-loops','#step=9');
-  p.key(' ');assert.equal(p.run('state.sub'),1);
-  p.tick(1800);assert.match(p.markup(),/id="responsibility-3" data-owner="harness"/);
-  assert.match(p.markup(),/id="responsibility-4" data-owner="human"/);
-  p.key('ArrowRight');p.tick(1800);
-  assert.equal(p.run('state.step'),10);assert.equal(p.run('state.sub'),0);
-  assert.match(p.markup(),/id="responsibility-4" data-owner="model"/);
-  p.run('navigate(parseState("#step=18"))');p.key('ArrowRight');
-  assert.equal(p.run('state.step'),18);
-  p.run('dispatch("decide:accept")');p.tick(1800);assert.match(p.markup(),/已接受/);
+test('A03: each advance changes one era and fast advance only settles animation',()=>{
+  const p=player('a03-e2e-loops');
+  for(let step=1;step<=5;step++){
+    p.key('ArrowRight');assert.equal(p.run('state.step'),step);
+    assert.equal(p.run('!!playing'),true);
+    p.key(' ');assert.equal(p.run('state.step'),step);
+    assert.equal(p.run('!!playing'),false);
+    p.tick(2000);assert.equal(p.run('state.step'),step);
+  }
+  p.key('ArrowRight');assert.equal(p.run('state.step'),5);
+});
+test('A03: agent transition settles to the new workflow and replay repeats that transition',()=>{
+  const p=player('a03-e2e-loops','#step=2');
+  p.run('forward()');p.tick(199);assert.match(p.markup(),/id="card-paste"/);
+  p.tick(701);assert.doesNotMatch(p.markup(),/id="card-paste"/);
+  assert.match(p.markup(),/id="card-implement"/);
+  p.tick(300);assert.equal(p.run('!!playing'),false);
+  p.key('p');assert.equal(p.run('state.step'),3);assert.equal(p.run('!!playing'),true);
+  p.tick(1200);assert.doesNotMatch(p.markup(),/id="card-copy"/);
+});
+test('A03: backward, reset, jumps and hash changes cancel pending playback',()=>{
+  const p=player('a03-e2e-loops','#step=2');
+  p.run('forward()');p.tick(400);p.key('ArrowLeft');p.tick(2000);
+  assert.equal(p.run('state.step'),2);assert.match(p.markup(),/id="card-paste"/);
+  p.run('forward()');p.tick(100);p.run('jump(5)');p.tick(2000);
+  assert.equal(p.run('state.step'),5);assert.doesNotMatch(p.markup(),/id="card-copy"/);
+  p.run('replay()');p.tick(400);p.run('location.hash="#step=1&motion=reduced"');p.event('hashchange');p.tick(2000);
+  assert.equal(p.run('state.step'),1);assert.equal(p.run('!!playing'),false);
+  p.run('forward()');assert.equal(p.run('state.step'),2);assert.equal(p.run('!!playing'),false);
+  p.key('r');assert.equal(p.run('state.step'),0);assert.equal(p.run('state.motion'),'reduced');
+  p.run('navigate(parseState("#step=2"))');p.run('forward()');p.tick(400);p.run('reset()');p.tick(2000);
+  assert.equal(p.run('state.step'),0);assert.match(p.markup(),/id="card-paste"/);
+});
+test('A03: all settled layouts fit, and workflow routes avoid cards and shared handoff ports',()=>{
+  const html=fs.readFileSync(path.join(__dirname,'a03-e2e-loops/index.html'),'utf8');
+  const ctx=vm.createContext({URLSearchParams});
+  for(const id of ['scene-model','scene-art'])vm.runInContext(html.match(new RegExp(`<script id="${id}">([\\s\\S]*?)<\\/script>`))[1],ctx);
+  for(let step=0;step<6;step++){
+    const {cards,edges}=JSON.parse(vm.runInContext(`JSON.stringify((()=>{const cards=layoutCards(sceneFor(parseState('#step=${step}')).cards);return {cards,edges:connections(cards)};})())`,ctx));
+    assert.equal(edges.length,cards.length-1);
+    cards.forEach((card,i)=>{
+      assert.ok(card.y>=366&&card.y+44<=970);
+      assert.ok(card.x>=64&&card.x+736<=1856);
+      for(const other of cards.slice(i+1))assert.ok(card.x+736<=other.x||other.x+736<=card.x||card.y+44<=other.y||other.y+44<=card.y);
+    });
+    for(const edge of edges){
+      edge.points.slice(1).forEach(([bx,by],i)=>{
+        const [ax,ay]=edge.points[i];
+        for(const card of cards){
+          const vertical=ax===bx&&ax>card.x&&ax<card.x+736&&Math.max(ay,by)>card.y&&Math.min(ay,by)<card.y+44;
+          const horizontal=ay===by&&ay>card.y&&ay<card.y+44&&Math.max(ax,bx)>card.x&&Math.min(ax,bx)<card.x+736;
+          assert.equal(vertical||horizontal,false,`${step}: ${edge.from} → ${edge.to} crosses ${card.id}`);
+        }
+      });
+    }
+    const handoffs=edges.filter(edge=>edge.cross);
+    assert.equal(handoffs.length,2);
+    if(handoffs[0].to===handoffs[1].from)assert.notDeepEqual(handoffs[0].points.at(-1),handoffs[1].points[0],'input and output arrows must remain distinguishable');
+  }
 });

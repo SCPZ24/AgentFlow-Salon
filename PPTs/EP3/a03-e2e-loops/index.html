@@ -1,602 +1,248 @@
 <!doctype html>
 <html lang="zh-CN">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>e2e · 同一个任务，职责如何迁移</title>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>E2E · 人机职责的演进</title>
 <style>
-:root{color-scheme:light;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#202B33;background:#E8E7E2}
-*{box-sizing:border-box}body{margin:0;overflow:hidden;min-height:100vh;min-height:100dvh;display:grid;place-items:center}
-#stage{width:min(100vw,calc(100dvh * 16 / 9));aspect-ratio:16 / 9;line-height:0;background:#F7F6F2}
-#stage>svg{display:block;width:100%;height:100%;overflow:visible}.svg-button{cursor:pointer}.svg-button:hover>rect{stroke:#2765AB;stroke-width:3}.svg-button:focus{outline:none}.svg-button:focus-visible>rect{stroke:#2765AB;stroke-width:4}
-dialog{width:min(960px,92vw);max-height:90dvh;overflow:auto;border:2px solid #CCD3D6;border-radius:22px;padding:32px;background:#F7F6F2;color:#202B33;box-shadow:0 20px 80px #202B3326}
-dialog::backdrop{background:#202B3340}dialog h2{font-size:30px;margin:0}dialog header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:26px}
-button{font:inherit;font-size:22px;cursor:pointer;line-height:1.4;padding:10px 18px;background:white;border:2px solid #CCD3D6;border-radius:10px;color:inherit}button:hover{border-color:#2765AB}button:focus-visible,input:focus-visible{outline:3px solid #2765AB;outline-offset:3px}button:disabled{opacity:.4;cursor:default}.primary,button[aria-current]{background:#2765AB;color:#fff;border-color:#2765AB}
-.transport-controls,.settings,#phase-nav{display:flex;flex-wrap:wrap;gap:12px}.transport-controls{margin-bottom:24px}.settings{margin:24px 0}.settings label{display:flex;align-items:center;gap:9px;font-size:21px;margin-right:12px}input{width:22px;height:22px;accent-color:#2765AB}#phase-nav{border-top:1px solid #CCD3D6;border-bottom:1px solid #CCD3D6;padding:24px 0}#phase-nav button{font-size:20px}#branch-controls{margin:22px 0}.hint{font-size:18px;line-height:1.7;color:#52616B;margin:16px 0 0}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}[hidden]{display:none!important}
+:root{color-scheme:light;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#25332F;background:#E8E7E1}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;min-height:100dvh;display:grid;place-items:center;overflow:hidden}
+#stage{width:min(100vw,calc(100dvh * 16 / 9));aspect-ratio:16/9;background:#F7F6F0;touch-action:none;user-select:none}
+#stage>svg{display:block;width:100%;height:100%}#stage:focus{outline:none}
+dialog{width:min(820px,92vw);max-height:90dvh;overflow:auto;padding:30px;border:1px solid #D8DDD5;border-radius:18px;background:#F7F6F0;color:#25332F;box-shadow:0 20px 80px #25332F26}dialog::backdrop{background:#25332F44}dialog header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}dialog h2{font-size:26px;margin:0}button{font:inherit;font-size:19px;padding:10px 16px;border:1px solid #CCD3C9;border-radius:9px;background:#FFF;color:inherit;cursor:pointer}button:hover{border-color:#397664}button:focus-visible,input:focus-visible{outline:3px solid #397664;outline-offset:3px}button:disabled{opacity:.4;cursor:default}.primary,button[aria-current]{background:#397664;color:white;border-color:#397664}.transport-controls,#phase-nav,.settings{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}#phase-nav{padding:20px 0;border-block:1px solid #D8DDD5}.settings{align-items:center;justify-content:space-between}.settings label{display:flex;align-items:center;gap:8px}input{width:20px;height:20px;accent-color:#397664}.hint{font-size:16px;line-height:1.8;color:#65716A}a{color:#397664}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
 @media print{body{background:white}#stage{width:100%;height:auto}dialog{display:none}}
-</style></head>
+</style>
+</head>
 <body>
-<main id="stage" aria-label="e2e · 同一个任务，职责如何迁移" aria-busy="false"></main>
+<main id="stage" tabindex="-1" aria-label="E2E 六时代职责演示" aria-busy="false"></main>
 <p id="live-status" class="sr-only" aria-live="polite"></p>
-
 <dialog id="controls" aria-labelledby="control-title">
-<header><h2 id="control-title">演示控制</h2><button id="close-controls" aria-label="关闭演示控制">关闭 Esc</button></header>
-<div class="transport-controls"><button id="prev">← 上一步</button><button id="next" class="primary">下一步 →</button><button id="replay">重播本步 P</button><button id="reset">重置 R</button></div>
+<header><h2 id="control-title">演示控制</h2><button id="close-controls">关闭 Esc</button></header>
+<div class="transport-controls"><button id="prev">← 上一步</button><button id="next" class="primary">下一步 →</button><button id="replay">重播 P</button><button id="reset">重置 R</button></div>
 <nav id="phase-nav" aria-label="阶段跳转"></nav>
-<div id="branch-controls"><button id="failure">演示异常</button></div>
-<div id="a02-controls" class="settings" hidden><label><input type="checkbox" id="custom">自定义基础 SYSTEM.md</label><label><input type="checkbox" id="sample">冗长 / 冲突样本</label><label><input type="checkbox" id="theme">本地深色主题</label></div>
 <div class="settings"><label><input type="checkbox" id="motion">减少动效</label><button id="fullscreen">全屏</button></div>
 <p id="fullscreen-note" class="hint" role="status"></p>
-<p class="hint">← / → 或 Space 分步 · P 重播 · R 重置 · C 打开 / 收起控制<br>每步约 1.8 秒，随后停住。动画中再按前进，只完成当前动作。</p>
+<p class="hint">← / → 或 Space 切换时代 · 每次转场约 1.2 秒，随后暂停。<br>动画中再次前进，只完成当前转场。P 重播 · R 重置 · C 打开控制。</p>
 <p class="hint"><a href="speaker-notes.md">讲者备注</a> · <a href="stills/">静态备份</a></p>
 </dialog>
 <noscript>请启用 JavaScript，或打开 stills 文件夹中的静态备份。</noscript>
-<script id="scene-model">'use strict';
-const KIND="a03";
-const MAIN=[
-  [
-    0,
-    "比较工作方式，保持任务与验收不变。",
-    "人定义问题与边界，最终也由人判断。",
-    0
-  ],
-  [
-    1,
-    "人找到源码，粘贴给 Agent。",
-    "资料：人类 → Agent",
-    1,
-    "human-area",
-    "model-area",
-    "粘贴源码"
-  ],
-  [
-    1,
-    "Agent 生成候选代码，人复制到项目。",
-    "候选代码：Agent → 人类",
-    2,
-    "model-area",
-    "human-area",
-    "复制修改"
-  ],
-  [
-    1,
-    "人打开页面、运行检查。",
-    "执行器仍然是人：保存 → 运行 → 检查",
-    3
-  ],
-  [
-    1,
-    "人把错误再次贴回，Agent 才能继续。",
-    "反馈：人类 → Agent；搬运再次发生。",
-    4,
-    "human-area",
-    "model-area",
-    "粘贴错误"
-  ],
-  [
-    2,
-    "把目标、修改范围与验收写清楚。",
-    "目标：拒绝空白；范围：报名源码；验收：三项都满足。",
-    0
-  ],
-  [
-    2,
-    "更清楚的要求，产生更明确的候选。",
-    "源码仍需粘贴，修改仍需复制。",
-    2,
-    "model-area",
-    "human-area",
-    "复制候选"
-  ],
-  [
-    2,
-    "说明变好了，执行仍由人完成。",
-    "Prompt 本身没有创建文件权限、执行器或测试循环。",
-    3
-  ],
-  [
-    3,
-    "先选择这一轮真正需要的资料。",
-    "选入：项目规范、报名源码、错误输出。",
-    1
-  ],
-  [
-    3,
-    "选定工作流的读取工具，把材料送入上下文。",
-    "工具提供读取能力；Context 关注材料的选择与组织。",
-    1,
-    "harness-area",
-    "model-area",
-    "选定材料"
-  ],
-  [
-    4,
-    "职责进入运行系统，人保留关键控制。",
-    "模型提出修改；工具应用修改；人保留范围与授权。",
-    2
-  ],
-  [
-    4,
-    "Harness 执行允许范围内的修改。",
-    "执行 → 报名源码；受保护的验收基准保持不变。",
-    3,
-    "model-area",
-    "harness-area",
-    "执行请求"
-  ],
-  [
-    4,
-    "检查发现：关闭后无法重新打开弹窗。",
-    "检查 → 失败反馈；不能把「已修改」当作成功。",
-    3
-  ],
-  [
-    4,
-    "Agent 根据反馈修复；Harness 再执行。",
-    "失败反馈 → 修复请求 → 再执行",
-    4,
-    "harness-area",
-    "model-area",
-    "失败反馈"
-  ],
-  [
-    4,
-    "重新检查：三条验收条件均有证据。",
-    "空白被拒 ✓　有效成功 ✓　弹窗可重开 ✓",
-    3
-  ],
-  [
-    5,
-    "先交付小范围 diff。",
-    "候选修改：报名校验与弹窗状态复位。",
-    2
-  ],
-  [
-    5,
-    "附上测试结果，证明关键行为。",
-    "测试证据：空白 / 有效姓名 / 重开弹窗均通过。",
-    3
-  ],
-  [
-    5,
-    "补上界面复验，再交给人。",
-    "UI 复验：提交 → 关闭 → 重新打开。",
-    3
-  ],
-  [
-    6,
-    "候选交付完成，等待人类判断。",
-    "final 结束了回答；验收决定是否结束任务。",
-    5
-  ],
-  [
-    6,
-    "人类接受：这一轮 e2e 完成。",
-    "已接受 · 三条验收成立，修改范围可接受。",
-    5
-  ],
-  [
-    0,
-    "新约束回到目标澄清，外层 Loop 继续。",
-    "新增约束：全角空格也应拒绝；先澄清，再开始下一轮。",
-    0
-  ]
+<script id="scene-model">
+'use strict';
+// Capability stages for teaching, not a chronology of specific products.
+const CHAIN=[
+  ['goal','提出目标'],['read','读取现有代码'],['search','搜索获取信息'],
+  ['architecture','设计实现架构'],['design','设计代码'],['write-tests','编写测试'],
+  ['implement','实现代码'],['unit-tests','运行单元测试'],['browser','浏览器验证'],['accept','验收目标']
 ];
-const FAIL=[
-  [
-    "测试失败：弹窗关闭后无法再次打开。",
-    "教学仿真 · 已有失败反馈，需要定位原因。",
-    3
-  ],
-  [
-    "Agent 提议修改受保护的验收基准。",
-    "拟改 tests/acceptance.json，跳过「弹窗重开」检查。",
-    2
-  ],
-  [
-    "Harness 拒绝越界动作，原文件保持不变。",
-    "拒绝原因：验收基准只读；允许修改 src/registration.ts。",
-    3
-  ],
-  [
-    "Agent 已收到拒绝原因与失败反馈。",
-    "选择允许范围内修复，或在预算耗尽时上报。",
-    4
-  ],
-  [
-    "回到允许范围，修复弹窗状态复位。",
-    "修复请求 → src/registration.ts；验收基准不变。",
-    2
-  ],
-  [
-    "Harness 执行源码修改，再运行原有检查。",
-    "执行 → 检查；修复动作本身不等于成功。",
-    3
-  ],
-  [
-    "原有检查通过，准备提交证据。",
-    "空白被拒 ✓　有效成功 ✓　弹窗可重开 ✓",
-    3
-  ],
-  [
-    "预算耗尽：停止尝试，向人类上报。",
-    "已做：校验修改；未解：弹窗重开；需判断：范围与条件。",
-    4
-  ],
-  [
-    "人类澄清条件，返回任务边界。",
-    "明确：重开后表单应清空；保留原验收基准。",
-    0
-  ],
-  [
-    "人类授权一项具体的源码动作。",
-    "仅允许重置 src/registration.ts 的弹窗状态；不改验收基准。",
-    0
-  ],
-  [
-    "Harness 按授权执行，并重新运行检查。",
-    "授权 → 执行 → 检查；授权不能直接变成成功。",
-    3
-  ],
-  [
-    "检查通过，下一步交付证据供人验收。",
-    "源码动作已验证；最终接受仍在人类侧。",
-    3
-  ],
-  [
-    "人类终止任务，系统停止执行。",
-    "已停止 · 保留已做事项与未解决问题。",
-    5
-  ]
+const LABELS={...Object.fromEntries(CHAIN),paste:'粘贴代码给 AI',copy:'复制 AI 代码',adjust:'微调并写入项目',implement:'编辑项目代码'};
+const ERAS=[
+  {title:'ChatBox',caption:'AI 提供代码方案',ai:['design'],flow:['goal','read','search','architecture','paste','design','write-tests','copy','adjust','unit-tests','browser','accept']},
+  {title:'模型能力提升',caption:'AI 开始承担架构设计',ai:['architecture','design'],flow:['goal','read','search','paste','architecture','design','write-tests','copy','adjust','unit-tests','browser','accept']},
+  {title:'接入搜索',caption:'AI 自主获取外部资料',ai:['search','architecture','design'],flow:['goal','read','paste','search','architecture','design','write-tests','copy','adjust','unit-tests','browser','accept']},
+  {title:'Coding Agent',caption:'AI 直接读取并修改项目',ai:['read','search','architecture','design','write-tests','implement'],flow:CHAIN.map(([id])=>id)},
+  {title:'Skills / Workflow',caption:'AI 按工作流自主运行测试',ai:['read','search','architecture','design','write-tests','implement','unit-tests'],flow:CHAIN.map(([id])=>id)},
+  {title:'Computer Use',caption:'AI 操控浏览器完成验证',ai:['read','search','architecture','design','write-tests','implement','unit-tests','browser'],flow:CHAIN.map(([id])=>id)}
 ];
-// Complete scene snapshots; hash values never contain executable markup.
-function defaults() {
-  return KIND === 'a02'
-    ? {step:0,base:'default',sample:'compact',theme:'light',motion:'full'}
-    : KIND === 'a03'
-      ? {step:0,branch:'main',decision:'none',human:'none',sub:0,motion:'full'}
-      : {step:0,branch:'main',motion:'full'};
+const PHASES=ERAS.map((era,i)=>[era.title,i]);
+function defaults(){return {step:0,motion:'full'};}
+function parseState(hash){
+  const state=defaults(),params=new URLSearchParams(hash.replace(/^#/,''));
+  const legacy={branch:'main',decision:'none',human:'none',sub:'0'};
+  for(const [key,value] of params){
+    if(params.getAll(key).length!==1)return defaults();
+    if(key==='step'){
+      if(!/^\d+$/.test(value)||Number(value)>=ERAS.length)return defaults();
+      state.step=Number(value);
+    }else if(key==='motion'){
+      if(!['full','reduced'].includes(value))return defaults();
+      state.motion=value;
+    }else if(!Object.hasOwn(legacy,key)||legacy[key]!==value)return defaults();
+  }
+  return state;
 }
-function parseState(hash) {
-  const s = defaults(), p = new URLSearchParams(hash.replace(/^#/,''));
-  const choices = {branch:['main','fail'],base:['default','custom'],sample:['compact','verbose'],theme:['light','dark'],motion:['full','reduced'],decision:['none','accept','new','repair','budget'],human:['none','clarify','authorize','stop']};
-  for (const [key,value] of p) {
-    if (!(key in s) || p.getAll(key).length !== 1) return defaults();
-    if (key === 'step' || key === 'sub') {
-      if (!/^\d+$/.test(value)) return defaults();
-      s[key] = Number(value);
-    } else if (choices[key].includes(value)) s[key] = value;
-    else return defaults();
-  }
-  const length = KIND === 'a01' ? (s.branch === 'fail' ? FAIL.length : MAIN.length) : KIND === 'a02' ? MAIN.length : s.branch === 'fail' ? FAIL.length : MAIN.length;
-  if (s.step >= length) return defaults();
-  if (KIND === 'a03') {
-    const n=s.step, d=s.decision, h=s.human;
-    const valid = s.branch === 'main'
-      ? (n<=18 && d==='none' && h==='none') || (n===19 && d==='accept' && h==='none') || (n===20 && d==='new' && h==='none')
-      : (n<=3 && d==='none' && h==='none') || (n>=4 && n<=6 && d==='repair' && h==='none') || (n===7 && d==='budget' && h==='none') || (n===8 && d==='budget' && h==='clarify') || (n>=9 && n<=11 && d==='budget' && h==='authorize') || (n===12 && d==='budget' && h==='stop');
-    if (!valid || ![0,1].includes(s.sub) || (s.sub && (s.branch!=='main' || n!==10))) return defaults();
-  }
-  return s;
-}
-function serializeState(s) { return '#'+new URLSearchParams(s).toString(); }
-function mainState(s, step) { return {...defaults(),motion:s.motion,step}; }
-function nextState(s) {
-  if (KIND !== 'a03') {
-    const length = s.branch === 'fail' ? FAIL.length : MAIN.length;
-    return s.step+1 < length ? {...s,step:s.step+1} : null;
-  }
-  if (s.branch === 'main') {
-    if (s.step>=18) return null;
-    if (s.step===9) return {...s,step:10,sub:1};
-    if (s.step===10 && s.sub) return {...s,sub:0};
-    return {...s,step:s.step+1,sub:0};
-  }
-  if ([3,7,8,12].includes(s.step)) return null;
-  if ([6,11].includes(s.step)) return mainState(s,15);
-  return {...s,step:s.step+1};
-}
-function prevState(s) {
-  if (KIND !== 'a03') return s.step>0 ? {...s,step:s.step-1} : s.branch==='fail' ? mainState(s,14) : null;
-  if (s.branch==='main') {
-    if ([19,20].includes(s.step)) return mainState(s,18);
-    if (s.step===10 && !s.sub) return {...s,sub:1};
-    return s.step>0 ? {...s,step:s.step-1,sub:0} : null;
-  }
-  if (s.step===0) return mainState(s,11);
-  if ([4,7].includes(s.step)) return {...mainState(s,3),branch:'fail'};
-  if ([8,9,12].includes(s.step)) return {...mainState(s,7),branch:'fail',decision:'budget'};
-  return {...s,step:s.step-1};
-}
-const PHASES = [['固定目标',0],['ChatBox',1],['Prompt',5],['Context',8],['Harness',10],['候选交付',15],['人类判断',18]];
-const NAMES = ['定义目标','取得资料','生成修改','执行与验证','失败处理','最终判断'];
-const CAPTIONS = ['同一任务，同一验收条件','人把源码交给模型','人把候选代码放回项目','人运行，人检查','人把错误交回模型','写清目标、范围与验收','候选更明确，仍需人搬运','说明变好了，执行仍在人','选入这一轮需要的材料','读取材料，交给模型','把执行与反馈接进系统','Harness 执行修改','检查发现失败','根据失败反馈，修复重试','原有检查全部通过','先交付修改证据','再交付测试证据','补上界面复验证据','证据齐备，等待人类判断','人类接受，本轮任务完成','新约束，开启外层闭环'];
-const FAIL_CAPTIONS = ['检查失败：弹窗无法重开','拟修改受保护的验收基准','拒绝越界，验收基准不变','修复，或停止并上报','在允许范围内修复','执行源码修改，再检查','检查通过，准备交付','预算耗尽，停止并上报','澄清条件，回到任务边界','授权一项具体源码动作','执行获准动作，再检查','检查通过，等待交付验收','人类终止，系统停止'];
-function sceneFor(s) {
-  const fail=s.branch==='fail', n=s.step, raw=fail?FAIL[n]:MAIN[n], g=fail?(n===8?0:4):raw[0];
-  const owners=g<3?['human','human','model','human','human','human']:g===3?['human','harness','model','human','human','human']:['human','harness','model','harness','model','human'];
-  if(!fail&&n===10&&s.sub)owners[4]='human';
-  const focus=fail?raw[2]:raw[3];
-  const actions=[];
-  if(!fail&&n===18)actions.push(['接受','accept'],['提出新约束','new']);
-  if(fail&&n===3)actions.push(['范围内修复','repair'],['停止并上报','budget']);
-  if(fail&&n===7)actions.push(['澄清条件','clarify'],['授权源码动作','authorize'],['终止','stop']);
-  const flow=fail?({0:['harness','model','失败反馈'],1:['model','harness','越界请求'],2:['harness','model','拒绝'],4:['model','harness','修复请求'],5:['model','harness','执行'],6:['harness','model','检查通过'],7:['model','human','上报'],8:['human','model','澄清'],9:['human','harness','授权'],10:['model','harness','执行'],11:['harness','model','检查通过'],12:['human','harness','终止']}[n]||null):raw[4]?[raw[4].replace('-area',''),raw[5].replace('-area',''),raw[6]]:({3:['human','human','运行检查'],8:['human','harness','选取资料'],12:['harness','model','检查失败'],14:['harness','model','检查通过'],15:['model','human','diff'],16:['harness','human','测试'],17:['harness','human','UI 复验'],18:['model','human','候选交付'],20:['human','model','新约束']}[n]||null);
-  return {kind:KIND,state:s,g,caption:fail?FAIL_CAPTIONS[n]:n===10?(s.sub?'执行职责进入 Harness':'失败处理回到模型'):CAPTIONS[n],owners,focus,flow,actions,evidence:!fail&&n>=15&&n<=19?n-14:0,verdict:!fail&&n===19?'accepted':!fail&&n>=17&&n<=18?'candidate':fail&&n===12?'stopped':'none',fail};
-}
-function decide(s,choice) {
-  if(s.branch==='main'&&s.step===18) {
-    if(choice==='accept')return {...mainState(s,19),decision:'accept'};
-    if(choice==='new')return {...mainState(s,20),decision:'new'};
-  }
-  if(s.branch==='fail'&&s.step===3) {
-    if(choice==='repair')return {...s,step:4,decision:'repair'};
-    if(choice==='budget')return {...s,step:7,decision:'budget'};
-  }
-  if(s.branch==='fail'&&s.step===7) {
-    const step={clarify:8,authorize:9,stop:12}[choice];
-    if(step!==undefined)return {...s,step,human:choice};
-  }
-  return null;
+function serializeState(state){return '#'+new URLSearchParams({step:state.step,motion:state.motion}).toString();}
+function nextState(state){return state.step<ERAS.length-1?{...state,step:state.step+1}:null;}
+function prevState(state){return state.step>0?{...state,step:state.step-1}:null;}
+function sceneFor(state){
+  const era=ERAS[state.step];
+  return {state,title:era.title,caption:era.caption,
+    owners:CHAIN.map(([id])=>era.ai.includes(id)?'ai':'human'),
+    cards:era.flow.map(id=>({id,label:LABELS[id],owner:era.ai.includes(id)?'ai':'human'}))};
 }
 </script>
-<script id="scene-art">// The same SVG scene is used by the live page and offline PNG exports.
-const C={bg:'#F7F6F2',ink:'#202B33',muted:'#52616B',line:'#CCD3D6',blue:'#2765AB',blueSoft:'#EAF1FA',amber:'#99611D',amberSoft:'#F8EFDF',purple:'#754CAD',purpleSoft:'#F0EAF7',green:'#237149',greenSoft:'#E8F3EC',red:'#B43836',redSoft:'#FBEDEC',white:'#FFFFFF'};
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
-const text=(x,y,value,size=34,color=C.ink,weight=500,anchor='start',extra='')=>`<text x="${x}" y="${y}" font-size="${size}" fill="${color}" font-weight="${weight}" text-anchor="${anchor}" ${extra}>${esc(value)}</text>`;
-const rect=(x,y,w,h,fill=C.white,stroke='none',r=16,extra='')=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${fill}" stroke="${stroke}" ${extra}/>`;
-const line=(x1,y1,x2,y2,color=C.line,width=2,extra='')=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${width}" ${extra}/>`;
-const pill=(x,y,w,label,color=C.blue,fill=C.blueSoft,size=28)=>rect(x,y,w,48,fill,'none',10)+text(x+w/2,y+34,label,size,color,600,'middle');
-function box(id,x,y,w,h,title,color=C.ink,active=false) {
-  return `<g id="${id}">`+rect(x,y,w,h,C.white,active?color:C.line,18,`stroke-width="${active?3:2}"`)+text(x+26,y+48,title,28,color,600)+'</g>';
-}
-function buttonSVG(x,y,w,label,action,color=C.ink,selected=false) {
-  return `<g role="button" tabindex="0" data-action="${esc(action)}" aria-label="${esc(label)}" class="svg-button" ${selected?'aria-current="step"':''}>`+rect(x,y,w,48,selected?color:C.white,selected?color:C.line,10,'stroke-width="2"')+text(x+w/2,y+33,label,24,selected?C.white:color,600,'middle')+'</g>';
-}
-function chrome(scene,title) {
-  const s=scene.state;
-  let out=rect(0,0,1920,1080,C.bg,'none',0);
-  out+=text(64,103,title,56,C.ink,700);
-  out+=text(64,169,scene.caption,34,scene.fail?C.red:C.muted,500,'start','id="scene-caption"');
-  const label=KIND==='a01'?(scene.call?'Call '+scene.call+' / 4':'ReAct Loop'):KIND==='a02'?'Pi · Context':scene.fail?'异常 · 教学仿真':PHASES[scene.g][0];
-  out+=text(1856,100,label,36,scene.fail?C.red:KIND==='a03'?C.purple:C.blue,600,'end');
-  out+=line(64,205,1856,205,C.line,2);
-  out+=line(64,958,1856,958,C.line,2);
-  if(KIND==='a03') {
-    PHASES.slice(1,5).forEach((p,i)=>{out+=buttonSVG(64+i*224,977,204,p[0],'jump:'+p[1],C.blue,scene.g===i+1);});
-  } else {
-    const names=KIND==='a01'?['任务','输入','决策','读取','回传','修改','结果','测试','回答','验收']:PHASES.map(p=>p[0]);
-    names.forEach((name,i)=>{
-      const x=64+i*(KIND==='a01'?126:153);
-      out+=`<g role="button" tabindex="0" data-action="jump:${PHASES[i][1]}" aria-label="跳到${esc(name)}" class="svg-button" ${i===scene.g?'aria-current="step"':''}>`;
-      out+=rect(x,979,KIND==='a01'?112:140,44,i===scene.g?C.blueSoft:C.bg,'none',8);
-      out+=text(x+(KIND==='a01'?56:70),1010,name,24,i===scene.g?C.blue:C.muted,i===scene.g?700:500,'middle')+'</g>';
-    });
-  }
-  out+=buttonSVG(1726,977,130,'操作 C','controls',C.ink);
-  const foot=KIND==='a03'?(scene.fail?'教学仿真 · 策略拒绝示意，非安全沙箱证明':'协作模式示意，非严格年代分期'):'逻辑结构示意，非特定 provider 原始请求';
-  out+=text(64,1056,foot,22,C.muted,400);
-  out+=text(1856,1056,'← → 分步　P 重播',22,C.muted,400,'end');
-  return out;
-}
-function wrapSVG(body,caption='') {
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080" role="group" aria-label="${esc(caption)}" style="font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif"><defs><marker id="arrow-blue" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="16" markerHeight="16" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L11 6 L1 11" fill="none" stroke="${C.blue}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></marker><marker id="arrow-red" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="16" markerHeight="16" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L11 6 L1 11" fill="none" stroke="${C.red}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></marker><marker id="arrow-gray" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="16" markerHeight="16" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L11 6 L1 11" fill="none" stroke="#8A99A4" stroke-width="2.5"/></marker><marker id="arrow-purple" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="16" markerHeight="16" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L11 6 L1 11" fill="none" stroke="${C.purple}" stroke-width="2.5"/></marker></defs>${body}</svg>`;
-}
-function routeSVG(spec) {
-  if(!spec)return '';
-  const pts=spec.points, d=pts.map((p,i)=>(i?'L':'M')+p.join(' ')).join(' '),color=spec.bad?C.red:C.blue;
-  let out=`<g id="current-route" aria-label="${esc(spec.label)}"><path d="${d}" fill="none" stroke="${color}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow-${spec.bad?'red':'blue'})"/>`;
-  if(spec.labelAt) {
-    const [x,y]=spec.labelAt,w=Math.max(104,spec.label.length*28+32);
-    out+=rect(x-w/2,y-31,w,43,C.bg,'none',5)+text(x,y,spec.label,26,color,600,'middle');
-  }
-  return out+'</g>';
-}
-function packetSVG(label,bad=false) {
-  const w=Math.max(126,Math.min(440,label.length*32+48));
-  return `<g id="packet" opacity="0" pointer-events="none">`+rect(-w/2,-31,w,62,bad?C.red:C.blue,'none',12)+text(0,12,label,32,C.white,650,'middle')+'</g>';
-}
-const AREAS={model:{x:64,w:440,color:C.blue,label:'LLM · 生成与决策'},harness:{x:598,w:452,color:C.amber,label:'Harness · 工具 / 检查'},human:{x:1154,w:702,color:C.purple,label:'人类 · 目标与判断'}};
-function cardPosition(owner,index) { const a=AREAS[owner];return {x:a.x+24,y:398+index*66,w:a.w-48,h:54}; }
-function responsibilitySVG(owner,index,active) {
-  const p=cardPosition(owner,index),a=AREAS[owner];
-  return `<g id="responsibility-${index}" data-owner="${owner}" aria-label="${esc(NAMES[index])}：${esc(a.label)}">`+rect(p.x,p.y,p.w,p.h,active?(owner==='human'?C.purpleSoft:owner==='harness'?C.amberSoft:C.blueSoft):C.white,active?a.color:C.line,10,`stroke-width="${active?3:2}"`)+text(p.x+18,p.y+37,String(index+1).padStart(2,'0'),24,C.muted,500)+text(p.x+69,p.y+38,NAMES[index],34,active?a.color:C.ink,600)+'</g>';
-}
-function flowFor(scene) {
-  if(!scene.flow)return null;
-  const [a,b,label]=scene.flow;
-  let points;
-  if(a===b)points=[[1818,575],[1834,575],[1834,671],[1818,671]];
-  else if(a==='human') {
-    const target=b==='model'?284:824;
-    points=[[1505,332],[1505,319],[target,319],[target,332]];
-  } else if(b==='human') {
-    const source=a==='model'?284:824;
-    points=[[source,848],[source,889],[1505,889],[1505,848]];
-  } else if(a==='model')points=[[504,557],[574,557],[574,623],[598,623]];
-  else points=[[598,491],[526,491],[526,689],[504,689]];
-  return {points,label:label.replace('选定材料','材料').replace('复制修改','候选代码').replace('粘贴源码','源码').replace('粘贴错误','错误反馈'),labelAt:a==='human'?[900,306]:b==='human'?[1102,879]:a===b?[1664,846]:[550,862],bad:scene.fail&&[0,1,2].includes(scene.state.step)||!scene.fail&&scene.state.step===12};
-}
-function drawScene(scene,options={}) {
-  const s=scene.state,n=s.step,g=scene.g,body=[chrome(scene,'同一个任务，职责如何迁移')];
-  body.push(text(64,261,'修复空白姓名报名',34,C.ink,650));
-  body.push(text(1856,259,'空白被拒  /  有效成功  /  弹窗可重开',28,C.muted,500,'end'));
-  Object.entries(AREAS).forEach(([id,a])=>{
-    body.push(`<g id="${id}">`,rect(a.x,332,a.w,516,id==='human'?'#F5F1F9':id==='harness'?'#FAF5EC':C.white,C.line,18,'stroke-width="2"'),text(a.x+24,378,a.label,30,a.color,650),'</g>');
+<script id="scene-art">
+// Shared by the live SVG and the offline PNG exporter.
+const C={bg:'#F7F6F0',paper:'#FDFDF9',ink:'#25332F',muted:'#748078',line:'#DCE1D9',human:'#80649D',humanSoft:'#F0EBF5',ai:'#347C70',aiSoft:'#E8F2ED',route:'#BBC4BB',flow:'#78867D'};
+const esc=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
+const rect=(x,y,w,h,fill,stroke='none',r=10,extra='')=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${fill}" stroke="${stroke}" ${extra}/>`;
+const text=(x,y,value,size=28,color=C.ink,weight=400,anchor='start',extra='')=>`<text x="${x}" y="${y}" font-size="${size}" fill="${color}" font-weight="${weight}" text-anchor="${anchor}" ${extra}>${esc(value)}</text>`;
+const CARD={w:736,h:44,startY:366,endY:886,humanX:104,aiX:1080};
+function layoutCards(cards){
+  const totals={human:0,ai:0},counts={human:0,ai:0};
+  cards.forEach(card=>totals[card.owner]++);
+  return cards.map(card=>{
+    const count=totals[card.owner],index=counts[card.owner]++;
+    const fraction=count===1?.5:index/(count-1);
+    return {...card,x:CARD[card.owner+'X'],y:CARD.startY+fraction*(CARD.endY-CARD.startY)};
   });
-  if(g>=4) {
-    body.push('<g aria-label="内层执行闭环"><path d="M504 557 H574 V623 H598 M598 491 H526 V689 H504" fill="none" stroke="#8A99A4" stroke-width="4" marker-end="url(#arrow-gray)"/>',text(550,450,'请求',24,C.blue,600,'middle'),text(550,757,'反馈',24,C.blue,600,'middle'),'</g>');
-  }
-  if(!scene.fail&&g>=5) {
-    body.push('<g aria-label="外层任务闭环"><path d="M1505 332 V319 H284 V332 M284 848 V938 H1102 V520 H1154" fill="none" stroke="'+C.purple+'" stroke-width="4" stroke-dasharray="9 8" marker-end="url(#arrow-purple)"/>',text(900,305,'目标 / 约束',24,C.purple,600,'middle'),text(900,927,'外层：证据 / 验收',24,C.purple,600,'middle'),'</g>');
-  }
-  // Each responsibility keeps its own vertical row across owners.
-  scene.owners.forEach((owner,i)=>body.push(responsibilitySVG(owner,i,i===scene.focus)));
-  if(!scene.fail&&g===2) {
-    body.push(pill(1184,792,192,'目标',C.purple,C.purpleSoft,24),pill(1400,792,192,'范围',C.purple,C.purpleSoft,24),pill(1616,792,210,'验收',C.purple,C.purpleSoft,24));
-  }
-  if(!scene.fail&&g===3) {
-    body.push(text(88,819,'规范 · 源码 · 错误输出',26,C.blue,600));
-    body.push(text(824,908,'无关资料留在外部',26,C.muted,500,'middle'));
-  }
-  if(g>=4) {
-    body.push(text(64,306,'系统内闭环',26,C.amber,600));
-  }
-  if(scene.evidence>0) {
-    const proof=['✓ diff','✓ 测试','✓ UI 复验'];
-    for(let i=0;i<Math.min(3,scene.evidence);i++)body.push(pill(1184+i*216,792,198,proof[i],C.green,C.greenSoft,26));
-  }
-  if(scene.verdict==='candidate'||scene.verdict==='accepted') {
-    body.push(pill(1184,658,642,scene.verdict==='accepted'?'✓ 已接受':'候选交付 · 待验收',scene.verdict==='accepted'?C.green:C.purple,scene.verdict==='accepted'?C.greenSoft:C.purpleSoft,32));
-  }
-  if(scene.verdict==='stopped')body.push(pill(1184,658,642,'■ 已终止 · 保留未解决问题',C.red,C.redSoft,30));
-  if(scene.fail){
-    if([1,2,3].includes(n)) {
-      body.push(rect(618,786,412,49,n===1?C.amberSoft:C.redSoft,'none',10),text(824,820,n===1?'拟改验收基准':n===2?'⊘ 拒绝 · 基准只读':'修复 / 上报',28,n===1?C.amber:C.red,650,'middle'));
+}
+function cardSVG(card,emphasis=false){
+  return `<g id="card-${card.id}" data-owner="${card.owner}" transform="translate(${card.x} ${card.y})" aria-label="${esc(card.label)}：${card.owner==='ai'?'AI':'人类'}">`
+    +rect(0,0,CARD.w,CARD.h,C[card.owner+'Soft'],emphasis?C[card.owner]:C.line,8,`id="card-bg-${card.id}" stroke-width="${emphasis?2.5:1}"`)
+    +rect(0,10,3,24,C[card.owner],'none',1)
+    +text(22,31,card.label,28,C.ink,450)+'</g>';
+}
+function connections(cards){
+  return cards.slice(1).map((to,i)=>{
+    const from=cards[i],cross=from.owner!==to.owner;
+    let points;
+    if(!cross){
+      const x=from.x+CARD.w/2;
+      points=[[x,from.y+CARD.h],[x,to.y-1]];
+    }else{
+      const toAI=to.owner==='ai',x1=toAI?from.x+CARD.w:from.x,x2=toAI?to.x:to.x+CARD.w;
+      const gutter=toAI?932:988;
+      const sourceY=from.y+CARD.h/2+(cards[i-1]?.owner!==undefined&&cards[i-1].owner!==from.owner?10:0);
+      const targetY=to.y+CARD.h/2-(cards[i+2]?.owner!==undefined&&cards[i+2].owner!==to.owner?10:0);
+      points=[[x1,sourceY],[gutter,sourceY],[gutter,targetY],[x2,targetY]];
     }
-    if(n===7)body.push(text(1184,687,'已做：姓名校验',28,C.purple,600),text(1184,727,'未解：弹窗重开',28,C.purple,600));
-    if(n===8)body.push(text(1184,819,'澄清：重开后清空表单',28,C.purple,600));
-    if(n===9)body.push(text(1184,687,'仅授权源码状态复位',28,C.purple,600));
+    return {from:from.id,to:to.id,cross,owner:to.owner,points};
+  });
+}
+function routesSVG(cards){
+  return '<g id="workflow-routes" aria-hidden="true">'+connections(cards).map(edge=>`<path data-from="${edge.from}" data-to="${edge.to}" d="${edge.points.map(([x,y],i)=>`${i?'L':'M'}${x} ${y}`).join(' ')}" fill="none" stroke="${edge.cross?C[edge.owner]:C.flow}" stroke-width="${edge.cross?2.5:2.2}" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#arrow-${edge.cross?edge.owner:'small'})"/>`).join('')+'</g>';
+}
+function drawScene(scene,options={}){
+  const cards=options.positions||layoutCards(options.cards||scene.cards),owners=options.owners||scene.owners;
+  const emphasis=new Set(options.emphasis||[]);
+  let out='<defs>';
+  for(const [id,color,size] of [['human',C.human,10],['ai',C.ai,10],['small',C.flow,7]]){
+    out+=`<marker id="arrow-${id}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="${size}" markerHeight="${size}" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker>`;
   }
-  const route=options.route===undefined?(!scene.fail&&g>=5?null:flowFor(scene)):options.route;
-  body.push(routeSVG(route));
-  // Decisions are in-scene; they remain available with the controls closed.
-  if(scene.actions.length){
-    const w=scene.actions.length===3?198:306;
-    scene.actions.forEach(([label,action],i)=>body.push(buttonSVG(1184+i*(w+18),876,w,label,'decide:'+action,C.purple)));
-  }
-  if(scene.fail)body.push(buttonSVG(1518,977,184,'返回主线','failure',C.red));
-  else if(g===4)body.push(buttonSVG(1470,977,232,'演示异常','failure',C.red));
-  return wrapSVG(body.join(''),scene.caption);
+  out+='</defs>'+rect(0,0,1920,1080,C.bg,'none',0);
+  out+=text(64,88,'E2E',58,C.ink,700)+text(198,87,'· End to End',34,C.muted,450);
+  out+=text(1856,74,scene.title,40,C.ink,650,'end')+text(1856,117,scene.caption,26,C.muted,400,'end');
+  // Fixed chain, with two lines for six-character labels.
+  out+='<g id="e2e-chain">';
+  CHAIN.forEach(([id,label],i)=>{
+    const x=64+i*182,owner=owners[i],lines=id==='browser'?['浏览器','验证']:label.length>4?[label.slice(0,2),label.slice(2)]:[label];
+    out+=`<g id="chain-${id}" data-owner="${owner}" aria-label="${esc(label)}：${owner==='ai'?'AI':'人类'}">`
+      +rect(x,158,154,82,C[owner+'Soft'],emphasis.has(id)?C[owner]:C.line,10,`id="chain-bg-${id}" stroke-width="${emphasis.has(id)?2.5:1}"`)
+      +lines.map((line,j)=>text(x+77,lines.length===1?209:193+j*32,line,27,C[owner],550,'middle',`id="chain-text-${id}-${j}"`)).join('')+'</g>';
+    if(i<CHAIN.length-1)out+=`<path d="M${x+161} 199 H${x+176} m-5 -5 5 5 -5 5" fill="none" stroke="${C.route}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>`;
+  });
+  out+='</g>';
+  out+=rect(64,286,832,684,C.paper,C.line,20)+rect(1024,286,832,684,C.paper,C.line,20);
+  out+=text(104,337,'人类职责',32,C.human,650)+text(1080,337,'AI 职责',32,C.ai,650);
+  if(!options.hideRoutes)out+=routesSVG(cards);
+  out+='<g id="responsibility-cards">'+cards.map(card=>cardSVG(card,emphasis.has(card.id))).join('')+'</g>';
+  out+=`<g role="progressbar" aria-label="时代进度" aria-valuemin="1" aria-valuemax="6" aria-valuenow="${scene.state.step+1}">`;
+  ERAS.forEach((_,i)=>{out+=`<circle cx="${960+(i-2.5)*26}" cy="1022" r="${i===scene.state.step?6:4}" fill="${i<=scene.state.step?C.ai:C.line}"/>`;});
+  out+='</g>';
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="group" aria-label="${esc(scene.title+'：'+scene.caption)}" style="font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif">${out}</svg>`;
 }
 </script>
-<script id="player">'use strict';
+<script id="player">
+'use strict';
 const $=id=>document.getElementById(id);
 const reducedQuery=matchMedia('(prefers-reduced-motion: reduce)');
-let state=readLocation(),playing=null,lastTransition=null,stableRoute;
-function readLocation(){const s=parseState(location.hash);if(!new URLSearchParams(location.hash.slice(1)).has('motion')&&reducedQuery.matches)s.motion='reduced';return s;}
+let state=readLocation(),playing=null;
+function readLocation(){
+  const result=parseState(location.hash);
+  if(!new URLSearchParams(location.hash.slice(1)).has('motion')&&reducedQuery.matches)result.motion='reduced';
+  return result;
+}
 function save(){window.history.replaceState(null,'',serializeState(state));}
 function updateControls(){
-  const scene=sceneFor(state);
   $('prev').disabled=!prevState(state);$('next').disabled=!playing&&!nextState(state);
-  $('replay').disabled=!prevState(state);
   $('motion').checked=state.motion==='reduced';
-  $('phase-nav').innerHTML=PHASES.map(([label,step],i)=>`<button type="button" data-jump="${step}" ${scene.g===i?'aria-current="step"':''}>${label}</button>`).join('');
-  $('branch-controls').hidden=KIND==='a02';
-  if(KIND!=='a02'){$('failure').textContent=state.branch==='fail'?'返回主线':KIND==='a01'?'演示测试失败':'演示异常';$('failure').disabled=state.branch!=='fail'&&(KIND==='a01'?![14,15,16].includes(state.step):scene.g!==4);}
-  $('a02-controls').hidden=KIND!=='a02';
-  if(KIND==='a02'){$('custom').checked=state.base==='custom';$('sample').checked=state.sample==='verbose';$('theme').checked=state.theme==='dark';}
-  $('live-status').textContent=scene.caption;
+  // Keep the focused phase button alive during a transition.
+  if($('phase-nav').dataset?.step!==String(state.step)){
+    $('phase-nav').innerHTML=PHASES.map(([label,step])=>`<button data-jump="${step}" ${step===state.step?'aria-current="step"':''}>${esc(label)}</button>`).join('');
+    if($('phase-nav').dataset)$('phase-nav').dataset.step=String(state.step);
+  }
   $('stage').setAttribute('aria-busy',String(!!playing));
+  const scene=sceneFor(state);
+  $('live-status').textContent=`第 ${state.step+1} 个时代，${scene.title}。${scene.caption}`;
 }
-function render(s=state,route=stableRoute){
-  $('stage').innerHTML=drawScene(sceneFor(s),route===undefined?{}:{route});
-  updateControls();
+function render(scene=sceneFor(state),options={}){
+  $('stage').innerHTML=drawScene(scene,options);updateControls();
 }
 function clearPlayback(){
   if(!playing)return;
   playing.timers.forEach(clearTimeout);playing.animations.forEach(a=>a.cancel());playing=null;
 }
-function finishPlayback(){if(!playing)return;clearPlayback();render();}
+function finishPlayback(){if(playing){clearPlayback();render();}}
 function navigate(target,animate=false){
   if(!target)return;
-  const before={...state};clearPlayback();stableRoute=undefined;state=target;save();
-  if(!animate||state.motion==='reduced'){lastTransition=null;render();return;}
-  play(before,state);
+  const before={...state};clearPlayback();state={...target};save();
+  if(animate&&state.motion!=='reduced')play(before,state);else render();
 }
 function play(before,target){
   clearPlayback();state={...target};save();
-  const from=sceneFor(before),to=sceneFor(target);
-  const moved=KIND==='a03'?to.owners.map((owner,i)=>owner!==from.owners[i]?i:-1).filter(i=>i>=0):[];
-  // Sequential playback uses one responsibility move per click.
-  const baseChanged=KIND==='a02'&&before.base!==target.base;
-  const route=moved.length?null:flowFor(baseChanged?{...to,flow:[target.base==='custom'?'src-custom':'src-base','system','基础块']}:to);
-  stableRoute=baseChanged?route:undefined;
-  playing={timers:[],animations:[]};lastTransition={from:{...before},to:{...target}};
-  render(before,route);
-  $('live-status').textContent=to.caption;
-  $('scene-caption').textContent=to.caption;
-  const svg=$('stage').querySelector('svg');
-  let actor,points;
-  if(moved.length===1){
-    const i=moved[0],a=cardPosition(from.owners[i],i),b=cardPosition(to.owners[i],i);
-    actor=$('responsibility-'+i);points=[[0,0],[b.x-a.x,b.y-a.y]];
-    actor.style.transformBox='view-box';actor.style.transformOrigin='0 0';
-    const shape=actor.querySelector('rect');
-    playing.animations.push(shape.animate([{width:a.w+'px',offset:0},{width:a.w+'px',offset:300/1300},{width:b.w+'px',offset:1}],{duration:1300,fill:'forwards',easing:'linear'}));
-    svg.append(actor);
-  } else if(route){
-    svg.insertAdjacentHTML('beforeend',packetSVG(route.label,route.bad));actor=$('packet');points=route.points;
-  }
-  const later=(fn,delay)=>playing.timers.push(setTimeout(()=>{if(playing)fn();},delay));
-  if(actor){
-    actor.setAttribute('opacity','1');
-    const pathPoints=points,distances=[0];
-    for(let i=1;i<pathPoints.length;i++)distances[i]=distances[i-1]+Math.hypot(pathPoints[i][0]-pathPoints[i-1][0],pathPoints[i][1]-pathPoints[i-1][1]);
-    const length=distances[distances.length-1]||1;
-    const transform=p=>`translate(${p[0]}px, ${p[1]}px)`;
-    const frames=[{transform:transform(pathPoints[0]),offset:0},{transform:transform(pathPoints[0]),offset:300/1300},...pathPoints.slice(1).map((p,i)=>({transform:transform(p),offset:(300+1000*distances[i+1]/length)/1300}))];
-    const animation=actor.animate(frames,{duration:1300,fill:'forwards',easing:'linear'});playing.animations.push(animation);
-  } else {
-    const id=KIND==='a01'?to.focus:KIND==='a02'?'system':`responsibility-${to.focus}`;
-    const el=$(id);
-    if(el)playing.animations.push(el.animate([{opacity:1},{opacity:.55},{opacity:1}],{duration:1000,iterations:1}));
-  }
-  later(()=>{
+  const from=sceneFor(before),to=sceneFor(target),oldPositions=layoutCards(from.cards),newPositions=layoutCards(to.cards);
+  const oldById=new Map(oldPositions.map(card=>[card.id,card])),newById=new Map(newPositions.map(card=>[card.id,card]));
+  const changed=[...new Set([...oldPositions,...newPositions].map(card=>card.id))].filter(id=>{
+    const a=oldById.get(id),b=newById.get(id);return !a||!b||a.owner!==b.owner||a.label!==b.label;
+  });
+  playing={timers:[],animations:[]};
+  const animate=(id,frames,options)=>{const el=$(id);if(el)playing.animations.push(el.animate(frames,options));};
+  render(to,{cards:from.cards,owners:from.owners,emphasis:changed});
+  animate('workflow-routes',[{opacity:1},{opacity:0}],{duration:200,fill:'forwards'});
+  playing.timers.push(setTimeout(()=>{
     playing.animations.forEach(a=>a.cancel());playing.animations=[];
-    render(target);
-    // Landing keeps the changed content and path visible for explanation.
-    const focus=KIND==='a01'?to.focus:KIND==='a02'?(to.flow?.[1]||'messages'):moved.length?`responsibility-${moved[0]}`:`responsibility-${to.focus}`;
-    if($(focus))playing.animations.push($(focus).animate([{opacity:.65},{opacity:1}],{duration:500,fill:'forwards'}));
-  },1300);
-  later(()=>{clearPlayback();render();},1800);
+    const removed=oldPositions.filter(card=>!newById.has(card.id));
+    render(to,{positions:[...newPositions,...removed],hideRoutes:true,emphasis:changed});
+    for(const card of newPositions){
+      const old=oldById.get(card.id);
+      if(old){
+        animate('card-'+card.id,[{transform:`translate(${old.x}px, ${old.y}px)`},{transform:`translate(${card.x}px, ${card.y}px)`}],{duration:600,delay:100,fill:'both',easing:'cubic-bezier(.4,0,.2,1)'});
+        if(old.owner!==card.owner)animate('card-bg-'+card.id,[{fill:C[old.owner+'Soft']},{fill:C[card.owner+'Soft']}],{duration:700,fill:'both'});
+      }else animate('card-'+card.id,[{opacity:0},{opacity:1}],{duration:450,delay:250,fill:'both'});
+    }
+    for(const card of removed)animate('card-'+card.id,[{opacity:1},{opacity:0}],{duration:180,fill:'forwards'});
+    CHAIN.forEach(([id,label],i)=>{
+      if(from.owners[i]===to.owners[i])return;
+      animate('chain-bg-'+id,[{fill:C[from.owners[i]+'Soft']},{fill:C[to.owners[i]+'Soft']}],{duration:700,fill:'both'});
+      for(let j=0;j<(label.length>4?2:1);j++)animate(`chain-text-${id}-${j}`,[{fill:C[from.owners[i]]},{fill:C[to.owners[i]]}],{duration:700,fill:'both'});
+    });
+  },200));
+  playing.timers.push(setTimeout(()=>{
+    playing.animations.forEach(a=>a.cancel());playing.animations=[];render();
+    animate('workflow-routes',[{opacity:0},{opacity:1}],{duration:300,fill:'forwards'});
+  },900));
+  playing.timers.push(setTimeout(()=>{clearPlayback();render();},1200));
 }
-function forward(){if(playing){finishPlayback();return;}navigate(nextState(state),true);}
+function forward(){if(playing)finishPlayback();else navigate(nextState(state),true);}
 function backward(){navigate(prevState(state));}
 function replay(){
   if(playing){finishPlayback();return;}
-  if(state.motion==='reduced'){render();return;}
-  const before=lastTransition&&serializeState(lastTransition.to)===serializeState(state)?lastTransition.from:prevState(state);
-  if(before)play(before,state);
+  if(state.step&&state.motion!=='reduced')play(prevState(state),state);else render();
 }
-function reset(){navigate({...defaults(),motion:reducedQuery.matches?'reduced':'full'});}
-function jump(step){navigate(KIND==='a02'?{...state,step}:mainState(state,step));closeControls();}
-function failure(){
-  if(KIND==='a02')return;
-  if(state.branch==='fail')navigate(mainState(state,KIND==='a01'?14:10));
-  else navigate({...mainState(state,0),branch:'fail'});
-  closeControls();
-}
-function openControls(){finishPlayback();$('controls').showModal();$('next').focus();}
+function reset(){navigate({...defaults(),motion:state.motion});}
+function jump(step){if(Number.isInteger(step)&&step>=0&&step<ERAS.length)navigate({...state,step});closeControls();}
+function openControls(){finishPlayback();$('controls').showModal();$('close-controls').focus();}
 function closeControls(){if($('controls').open)$('controls').close();}
-function dispatch(action){
-  if(action==='controls')openControls();
-  else if(action==='failure')failure();
-  else if(action.startsWith('jump:'))jump(Number(action.split(':')[1]));
-  else if(action.startsWith('decide:')){finishPlayback();const choice=action.split(':')[1];navigate(decide(state,choice),!['new','clarify'].includes(choice));}
-}
-$('stage').addEventListener('click',e=>{const button=e.target.closest('[data-action]');if(button)dispatch(button.dataset.action);});
-$('stage').addEventListener('keydown',e=>{const button=e.target.closest('[data-action]');if(button&&['Enter',' '].includes(e.key)){e.preventDefault();e.stopPropagation();dispatch(button.dataset.action);}});
-$('prev').onclick=backward;$('next').onclick=forward;$('replay').onclick=replay;$('reset').onclick=reset;$('failure').onclick=failure;$('close-controls').onclick=closeControls;
-$('phase-nav').onclick=e=>{const b=e.target.closest('[data-jump]');if(b)jump(Number(b.dataset.jump));};
+$('prev').onclick=backward;$('next').onclick=forward;$('replay').onclick=replay;$('reset').onclick=reset;$('close-controls').onclick=closeControls;
+$('phase-nav').onclick=e=>{const button=e.target.closest('[data-jump]');if(button)jump(Number(button.dataset.jump));};
 $('motion').onchange=e=>navigate({...state,motion:e.target.checked?'reduced':'full'});
-$('custom').onchange=e=>{const target={...state,step:Math.max(7,state.step),base:e.target.checked?'custom':'default'};navigate(target,true);};
-$('sample').onchange=e=>navigate({...state,sample:e.target.checked?'verbose':'compact'});
-$('theme').onchange=e=>navigate({...state,theme:e.target.checked?'dark':'light'});
 $('fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{$('fullscreen-note').textContent='浏览器未允许页面全屏；可使用浏览器的全屏命令。';}};
 $('controls').addEventListener('click',e=>{if(e.target===$('controls')){const r=$('controls').getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closeControls();}});
-$('controls').addEventListener('close',()=>{$('stage').querySelector('[data-action="controls"]')?.focus();});
+$('controls').addEventListener('close',()=>{$('stage').focus();});
 document.addEventListener('keydown',e=>{
   if(e.altKey||e.ctrlKey||e.metaKey||e.repeat)return;
   if(e.key==='Escape'){closeControls();return;}
   if(e.target.closest('input,select,textarea,[contenteditable="true"]'))return;
-  if(e.key===' '&&e.target.closest('button,[data-action]'))return;
-  const k=e.key.toLowerCase();
-  if(['arrowright','arrowleft',' ','p','r','c'].includes(k)){
-    e.preventDefault();
-    if(k==='arrowright'||k===' ')forward();else if(k==='arrowleft')backward();else if(k==='p')replay();else if(k==='r')reset();else $('controls').open?closeControls():openControls();
-  }
+  if(e.key===' '&&e.target.closest('button'))return;
+  const key=e.key.toLowerCase();
+  if(!['arrowright','arrowleft',' ','p','r','c'].includes(key))return;
+  e.preventDefault();
+  if(key==='arrowright'||key===' ')forward();else if(key==='arrowleft')backward();else if(key==='p')replay();else if(key==='r')reset();else $('controls').open?closeControls():openControls();
 });
-addEventListener('hashchange',()=>{clearPlayback();stableRoute=undefined;state=readLocation();lastTransition=null;save();render();});
+addEventListener('hashchange',()=>{clearPlayback();state=readLocation();save();render();});
 addEventListener('resize',finishPlayback);
 reducedQuery.addEventListener('change',e=>navigate({...state,motion:e.matches?'reduced':'full'}));
 save();render();
 </script>
-</body></html>
+</body>
+</html>

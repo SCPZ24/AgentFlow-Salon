@@ -6,8 +6,8 @@ const vm = require('node:vm');
 const sharp = require('sharp');
 const frames = {
   'a01-react-loop': [['01-start', '#step=0'], ['02-context-grows', '#step=6'], ['03-complete', '#step=14'], ['04-failure', '#step=3'], ['05-edit', '#step=8'], ['06-verified', '#step=12']],
-  'a02-pi-context': [['01-start', '#step=0'], ['02-skill-loaded', '#step=13'], ['03-summary', '#step=16']],
-  'a03-e2e-loops': [['01-start', '#step=0'], ['02-harness', '#step=10'], ['03-human-decision', '#step=18'], ['04-rejected', '#step=2&branch=fail']],
+  'a02-pi-context(已废弃)': [['01-start', '#step=0'], ['02-skill-loaded', '#step=13'], ['03-summary', '#step=16']],
+  'a03-e2e-loops': [['01-chatbox', '#step=0'], ['02-model-capability', '#step=1'], ['03-search', '#step=2'], ['04-coding-agent', '#step=3'], ['05-workflow', '#step=4'], ['06-computer-use', '#step=5']],
 };
 async function main() {
   const requested = process.argv.slice(2);
